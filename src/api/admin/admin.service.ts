@@ -8,7 +8,7 @@ import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { AdminEntity } from '../../core/';
+import { AdminEntity } from '../../core';
 import type { AdminRepository } from 'src/core/';
 import { CryptoService } from 'src/infrastructure/lib/crypto/brypt';
 import { TokenService } from 'src/infrastructure/lib/token/Token';

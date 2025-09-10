@@ -10,7 +10,7 @@ import { SignInCustomerDto } from './dto/signin-customer.dto';
 import { IPayload } from 'src/common/interface';
 import { successRes } from 'src/infrastructure/response/successRes';
 import { Response } from 'express';
-import type { CustomerRepository } from 'src/core/repository/customer.repository';
+import type { CustomerRepository } from 'src/core';
 
 @Injectable()
 export class CustomerService extends BaseService<

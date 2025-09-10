@@ -3,6 +3,7 @@ import { Order } from './order.entity';
 import { Wallet } from './wallet.entity';
 import { Comments } from './comment.entity';
 import { AdoptedCar } from './adopdet-car.entity';
+import { UserRole } from 'src/common/enum/user-enum';
 
 @Entity('customer')
 export class Customer {
@@ -25,7 +26,10 @@ export class Customer {
   adress: string;
 
   @Column({ default: true })
-  status: boolean;
+  is_active: boolean;
+
+  @Column({ type: "enum" , enum:UserRole, default:UserRole.USER})
+    role:UserRole.USER
 
   @OneToMany(() => Order, (order) => order.customer)
   orders: Order[];

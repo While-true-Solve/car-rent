@@ -25,7 +25,7 @@ const { url, sync } = config.DB;
       type: 'postgres',
       url: url,
       synchronize: sync,
-      entities: ['dist/core/model/*.model{.ts,.js}'],
+      entities: ['dist/core/entity/*.entity{.ts,.js}'],
       autoLoadEntities: true,
     }),
     AdminModule,

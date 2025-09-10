@@ -26,7 +26,7 @@ export class Car {
   @ManyToOne(() => Brand, (brand) => brand.cars)
   brand: Brand;
 
-  @ManyToOne(() => District, (district) => district.id)
+  @ManyToOne(() => District, (district) => district.cars)
   district: District;
 
   @OneToMany(() => Order, (order) => order.car)

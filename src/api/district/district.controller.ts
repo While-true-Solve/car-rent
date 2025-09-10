@@ -27,7 +27,7 @@ export class DistrictController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.districtService.findOne(+id);
+    return this.districtService.findOne(id);
   }
 
   @Patch(':id')
@@ -35,11 +35,11 @@ export class DistrictController {
     @Param('id') id: string,
     @Body() updateDistrictDto: UpdateDistrictDto,
   ) {
-    return this.districtService.update(+id, updateDistrictDto);
+    return this.districtService.update(id, updateDistrictDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.districtService.remove(+id);
+    return this.districtService.remove(id);
   }
 }

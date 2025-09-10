@@ -12,15 +12,15 @@ export class DistrictService {
     return `This action returns all district`;
   }
 
-  findOne(id: number) {
+  findOne(id: string) {
     return `This action returns a #${id} district`;
   }
 
-  update(id: number, updateDistrictDto: UpdateDistrictDto) {
+  update(id: string, updateDistrictDto: UpdateDistrictDto) {
     return `This action updates a #${id} district`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} district`;
   }
 }

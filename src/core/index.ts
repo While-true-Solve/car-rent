@@ -16,3 +16,4 @@ export * from './entity/penalty.entity';
 
 // Repositories
 export * from './repository/admin.repository';
+export * from './repository/car.repository'

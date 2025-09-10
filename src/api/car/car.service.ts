@@ -21,7 +21,7 @@ private readonly brandRepo: BrandService,
   }
 
   async createCar(createCarDto: CreateCarDto) {
-    const brand = await this.brandRepo.findOne(createCarDto.brand_id)
+    const brand = await this.brandRepo.findOneById(createCarDto.brand_id)
     if(!brand) {
       throw new NotFoundException('Brand not found')
     }

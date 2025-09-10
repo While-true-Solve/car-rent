@@ -16,3 +16,6 @@ export * from './entity/penalty.entity';
 
 // Repositories
 export * from './repository/admin.repository';
+export * from './repository/order.repository';
+export * from './repository/payment.repository';
+export * from './repository/penalty.repository';

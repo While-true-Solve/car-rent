@@ -17,17 +17,19 @@ export class ClassCarController {
 
   @Post()
   create(@Body() createClassCarDto: CreateClassCarDto) {
-    return this.classCarService.create(createClassCarDto);
+    return this.classCarService.createClassCar(createClassCarDto);
   }
 
   @Get()
   findAll() {
-    return this.classCarService.findAll();
+    return this.classCarService.findAll({
+      relations: ['classEntity', 'car']
+    });
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.classCarService.findOne(+id);
+    return this.classCarService.findOne(id);
   }
 
   @Patch(':id')
@@ -35,11 +37,11 @@ export class ClassCarController {
     @Param('id') id: string,
     @Body() updateClassCarDto: UpdateClassCarDto,
   ) {
-    return this.classCarService.update(+id, updateClassCarDto);
+    return this.classCarService.updateClassCar(id, updateClassCarDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.classCarService.remove(+id);
+    return this.classCarService.removeClassCar(id);
   }
 }

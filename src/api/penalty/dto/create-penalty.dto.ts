@@ -1,15 +1,13 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsNumber } from "class-validator";
+import { IsNotEmpty, IsNumber, IsString } from "class-validator";
 
 export class CreatePenaltyDto {
     @ApiProperty({
-        type: Number,
-        description: 'ID of the order this penalty belongs to',
-        example: 5,
+        example: 'a3f8e2c1-9b87-4b35-9f2c-1a2b3c4d5e6f'
     })
-    @IsNumber()
+    @IsString()
     @IsNotEmpty()
-    order_id: number;
+    order_id: string;
 
     @ApiProperty({
         type: Number,

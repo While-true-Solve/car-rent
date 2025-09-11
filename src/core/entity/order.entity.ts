@@ -3,6 +3,7 @@ import { Car } from './car.entity';
 import { Customer } from './customer.entity';
 import { Payment } from './payment.entity';
 import { Penalty } from './penalty.entity';
+import { OrderStatus } from 'src/common/enum/order-status-enum';
 
 @Entity('order')
 export class Order {
@@ -18,6 +19,17 @@ export class Order {
   @Column('decimal')
   total_amount: number;
 
+  @Column(
+    {
+      type: "enum",
+      enum: OrderStatus,
+      default: OrderStatus.ACTIVE, 
+
+    }
+  )
+  status: OrderStatus
+
+
   @ManyToOne(() => Car, (car) => car.orders)
   car: Car;
 
@@ -29,4 +41,5 @@ export class Order {
 
   @OneToOne(() => Penalty, (penalty) => penalty.order)
   penalty: Penalty;
+
 }

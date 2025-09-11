@@ -15,9 +15,10 @@ import { UpdatePenaltyDto } from './dto/update-penalty.dto';
 export class PenaltyController {
   constructor(private readonly penaltyService: PenaltyService) {}
 
+  ///
   @Post()
   create(@Body() createPenaltyDto: CreatePenaltyDto) {
-    return this.penaltyService.create(createPenaltyDto);
+    return this.penaltyService.createPenaltyForOrder(createPenaltyDto);
   }
 
   @Get()
@@ -27,16 +28,17 @@ export class PenaltyController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.penaltyService.findOne(+id);
+    return this.penaltyService.findOneById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePenaltyDto: UpdatePenaltyDto) {
-    return this.penaltyService.update(+id, updatePenaltyDto);
+  ///
+  @Patch(':id/pay')
+  markAsPaid(@Param('id') id: string) {
+    return this.penaltyService.markAsPaid(id);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.penaltyService.remove(+id);
+    return this.penaltyService.remove(id);
   }
 }

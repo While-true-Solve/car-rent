@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePenaltyDto } from './dto/create-penalty.dto';
 import { UpdatePenaltyDto } from './dto/update-penalty.dto';
 import { BaseService } from 'src/infrastructure/base/base.servise';
@@ -12,46 +12,121 @@ import { InjectRepository } from '@nestjs/typeorm';
 export class PenaltyService extends BaseService<CreatePenaltyDto, UpdatePenaltyDto, Penalty> {
   constructor(
     @InjectRepository(Penalty) private readonly penaltyRepo: PenaltyRepository,
-    @InjectRepository(Order) private readonly orderRepo: OrderRepository, 
+    @InjectRepository(Order) private readonly orderRepo: OrderRepository,
   ) {
     super(penaltyRepo)
   }
 
-//   ///////////////////////
-//   async calculateDelayedDays(orderId: number): Promise<number> {
-//     // TODO: bu yerda OrderRepository orqali orderni olib kelasan
-//     const order = await this.orderRepo.findOneBy({ id: String(orderId) });
-//     const now = new Date();
-//     const finishTime = new Date(order.finish_time);
+  // Jarimani Saqlash
+  async createPenaltyForOrder(createPenaltyDto: CreatePenaltyDto) {
+    // 1. Orderni topib olish
+    const order = await this.orderRepo.findOne({
+      where: { id: createPenaltyDto.order_id },
+      relations: ['penalty'] // penalty bor-yo‘qligini ham olish
+    })
+    if (!order) {
+      throw new NotFoundException(`Order ${createPenaltyDto.order_id} topilmadi`);
+    }
+    if (order.penalty) {
+      throw new BadRequestException(
+        `Order ${createPenaltyDto.order_id} uchun penalty allaqachon mavjud`
+      );
+    }
 
-//     if (now <= finishTime) return 0;
+    // 2. Hozirgi vaqt va order.finish_time ni solishtirish
+    const now = new Date();
+    const finishTime = new Date(order.finish_time);
+    if (now <= finishTime) {
+      throw new BadRequestException(
+        `Order ${createPenaltyDto.order_id} vaqtida qaytarilgan, penalty kerak emas`
+      );
+    }
 
-//     const diffMs = now.getTime() - finishTime.getTime();
-//     return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-//   }
+    // 4. Necha kun kechikkanini hisoblash
+    const daysLate = Math.ceil(
+      (now.getTime() - finishTime.getTime()) / (1000 * 60 * 60 * 24),
+    )
 
-//   // Penalty yaratish
-//   async createPenalty(dto: CreatePenaltyDto) {
-//     const order = await this.orderRepo.findOneBy({ id: CreatePenaltyDto.order_id });
-  
-//     if (!order) throw new Error('Order not found');
-  
-//     const delayedDays = await this.calculateDelayedDays(order.id);
-  
-//     return this.penaltyRepo.save({
-//       order, // ✅ bu joyda to‘g‘ridan-to‘g‘ri order obyektini berasan
-//       penalty_day_price: dto.penalty_day_price,
-//       penalty_amount: dto.penalty_day_price * delayedDays,
-//       is_paid_penalty: false,
-//     });
-//   }
-  
-//   // Jarimani to‘langan deb belgilash
-//   async markAsPaid(id: number) {
-//     const penalty = await this.penaltyRepo.findOneBy({ id });
-//     penalty.is_paid_penalty = true;
-//     return this.penaltyRepo.save(penalty);
-//   }
+    // 5. Penalty summasini hisoblash
+    const penaltyAmount = daysLate * Number(createPenaltyDto.penalty_day_price);
 
+
+
+    // 6. Yangi penalty obyektini yaratish
+    const penalty = this.penaltyRepo.create({
+      penalty_day_price: createPenaltyDto.penalty_day_price,
+      penalty_amount: penaltyAmount,
+      is_paid_penalty: false,
+      order: order,
+    });
+    // 7. Saqlash
+    return await this.penaltyRepo.save(penalty);
+
+  }
+
+  // Jarimani to‘langan deb qayd etish va DBda saqlash
+  async markAsPaid(penaltyId: string): Promise<Penalty> {
+    // 1. Kiruvchi parameterni tekshirish
+    if (!penaltyId) {
+      // Agar id berilmagan bo'lsa 400
+      throw new BadRequestException('Penalty id is required');
+    }
+
+
+    const penalty = await this.penaltyRepo.findOne({
+      where: { id: penaltyId },
+      relations: ['order'], // ixtiyoriy — kerak bo'lsa olib kelamiz
+    })
+    // 3. Agar topilmasa 404
+    if (!penalty) {
+      throw new NotFoundException(`Penalty with id ${penaltyId} not found`);
+    }
+
+    // 4. Agar allaqachon to'langan bo'lsa — idempotent: shu obyektni qaytaramiz
+    if (penalty.is_paid_penalty) {
+      return penalty;
+    }
+
+    // 5. To'lanmagan bo'lsa flagni true qilib belgilaymiz
+    penalty.is_paid_penalty = true;
+
+    // 6. Saqlaymiz (update)
+    const saved = await this.penaltyRepo.save(penalty);
+
+    // 7. Yangilangan natijani qaytaramiz
+    return saved;
+
+
+
+  }
+
+
+  // Yordamchi Method: yani Penalty sumasini xisoblab beradi Order Tablesida korsatib qoyishimiz mumkin
+  async calculatePenalty(orderId: string, penaltyDayPrice: number): Promise<number> {
+    // 1. Orderni topamiz
+    const order = await this.orderRepo.findOne({ where: { id: orderId } });
+    if (!order) {
+      throw new NotFoundException(`Order ${orderId} topilmadi`);
+    }
+
+    // 2. Hozirgi vaqt va finish_time ni solishtirish
+    const now = new Date();
+    const finishTime = new Date(order.finish_time);
+
+    if (now <= finishTime) {
+      return 0; // ✅ vaqtida qaytarilgan bo‘lsa penalty yo‘q
+    }
+
+    // 3. Necha kun kechikkanini hisoblash
+    const daysLate = Math.ceil(
+      (now.getTime() - finishTime.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    // 4. Penalty summasini qaytarish
+    return daysLate * penaltyDayPrice;
+
+
+
+  }
 
 }

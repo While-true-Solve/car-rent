@@ -26,9 +26,10 @@ export class CreateCarDto {
 
     @ApiProperty({ enum: FuelType ,example: FuelType.PETROL, description: 'Type of fuel' })
     @IsEnum(FuelType)
-    fuel_type: FuelType;
+    fuelType: FuelType;
 
     @ApiProperty({ example: 'uuid', description: 'District ID'})
     @IsUUID()
+    @IsNotEmpty()
     district_id: string;
 }

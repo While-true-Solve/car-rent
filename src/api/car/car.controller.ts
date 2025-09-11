@@ -17,7 +17,7 @@ export class CarController {
 
   @Post()
   create(@Body() createCarDto: CreateCarDto) {
-    return this.carService.create(createCarDto);
+    return this.carService.createCar(createCarDto);
   }
 
   @Get()
@@ -27,12 +27,12 @@ export class CarController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.carService.findOneById(id);
+    return this.carService.findOneCar(id);
   }
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCarDto: UpdateCarDto) {
-    return this.carService.update(id, updateCarDto);
+    return this.carService.updateCar(id, updateCarDto);
   }
 
   @Delete(':id')

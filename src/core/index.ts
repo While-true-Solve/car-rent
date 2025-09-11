@@ -18,3 +18,4 @@ export * from './entity/penalty.entity';
 export * from './repository/admin.repository';
 export * from './repository/car.repository'
 export * from './repository/brand.rpository'
+export * from './repository/district.repository'

@@ -1,4 +1,9 @@
-import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { BaseService } from 'src/infrastructure/base/base.servise';
@@ -7,19 +12,24 @@ import type { OrderRepository, PaymentRepository } from 'src/core';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
-export class PaymentService extends BaseService<CreatePaymentDto, UpdatePaymentDto, Payment> {
+export class PaymentService extends BaseService<
+  CreatePaymentDto,
+  UpdatePaymentDto,
+  Payment
+> {
   constructor(
     @InjectRepository(Payment) private readonly paymentRepo: PaymentRepository,
     @InjectRepository(Order) private readonly orderRepo: OrderRepository,
   ) {
-    super(paymentRepo)
+    super(paymentRepo);
   }
 
   // Payment ozini  Create qilish Tranzaksiya mavjud emas
   async createPayment(createPaymentDto: CreatePaymentDto) {
-
     // 1. Order mavjudligini tekshirish
-    const order = await this.orderRepo.findOne({ where: { id: createPaymentDto.order_id } });
+    const order = await this.orderRepo.findOne({
+      where: { id: createPaymentDto.order_id },
+    });
     if (!order) {
       throw new HttpException('Order not found', 404);
     }
@@ -32,18 +42,15 @@ export class PaymentService extends BaseService<CreatePaymentDto, UpdatePaymentD
       throw new HttpException('This order is already paid', 400);
     }
 
-
-
     const payment = this.getRepository.create({
       ...createPaymentDto,
       payment_date: new Date(),
       payment_status: false,
-    })
+    });
 
     const data = await this.getRepository.save(payment);
-    return { message: 'Payment created successfully', data }
+    return { message: 'Payment created successfully', data };
   }
-
 
   // find all
   async findAllPayments() {
@@ -55,7 +62,6 @@ export class PaymentService extends BaseService<CreatePaymentDto, UpdatePaymentD
     return this.findOneById(id, { relations: ['order'] });
   }
 
-
   // confirm   Paymentni tolanmagan bo'lganida uni To'langanga o'zgartirish
   async confirmPayment(id: string) {
     const payment = await this.findOneById(id);
@@ -64,13 +70,9 @@ export class PaymentService extends BaseService<CreatePaymentDto, UpdatePaymentD
     await this.getRepository.update(id, { payment_status: true });
     const updated = await this.findOneById(id);
 
-
     return {
       message: 'Payment confirmed successfully',
       data: updated,
     };
   }
-
-
-
 }

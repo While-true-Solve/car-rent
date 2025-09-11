@@ -1,29 +1,53 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { BaseService } from 'src/infrastructure/base/base.servise';
 import { Car, Customer, Order, Payment, Wallet } from 'src/core';
-import type { OrderRepository } from '../../core/'
+import type {
+  CarRepository,
+  CustomerRepository,
+  OrderRepository,
+} from '../../core/';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, MoreThan } from 'typeorm'; // DB connection va ORM’ning markaziy boshqaruvchisi.
 import { OrderStatus } from 'src/common/enum/order-status-enum';
+import { PenaltyService } from '../penalty/penalty.service';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 @Injectable()
-export class OrderService extends BaseService<CreateOrderDto, UpdateOrderDto, Order> {
+export class OrderService extends BaseService<
+  CreateOrderDto,
+  UpdateOrderDto,
+  Order
+> {
   constructor(
     @InjectRepository(Order) private readonly orderRepo: OrderRepository,
-    @InjectRepository(Customer) private readonly customerRepo: CustomerRepository,
+    @InjectRepository(Customer)
+    private readonly customerRepo: CustomerRepository,
     @InjectRepository(Car) private readonly carRepo: CarRepository,
-    private dataSource: DataSource
+    private dataSource: DataSource,
+    private penaltyService: PenaltyService, // <-- inject qilyapmiz
   ) {
-    super(orderRepo)
+    super(orderRepo);
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT) // Har kun 00: 00 da ishlaydi
+  async handleLateOrders() {
+    console.log('Cron: kechikkan orderlar tekshirildi ✅');
+    await this.checkAndCreatePenaltyForLateOrders();
   }
 
   // Orderni ozini  Create qilish Tranzaksiya mavjud emas
   async createOrder(createOrderDto: CreateOrderDto) {
-    const { car_id, customer_id, ...rest } = createOrderDto
+    const { car_id, customer_id, ...rest } = createOrderDto;
 
-    const customer = await this.customerRepo.findOne({ where: { id: customer_id } });
+    const customer = await this.customerRepo.findOne({
+      where: { id: customer_id },
+    });
     if (!customer) {
       throw new NotFoundException('Customer not found');
     }
@@ -38,21 +62,20 @@ export class OrderService extends BaseService<CreateOrderDto, UpdateOrderDto, Or
     const activeOrder = await this.orderRepo.findOne({
       where: {
         car: { id: car_id },
-        finish_time: MoreThan(new Date()) // hali tugamagan buyurtma
+        finish_time: MoreThan(new Date()), // hali tugamagan buyurtma
       },
     });
     if (activeOrder) {
       throw new BadRequestException('Car already rented');
     }
 
-
-
-
     // Total amount hisoblash
     const start = new Date(createOrderDto.start_time);
     const finish = new Date(createOrderDto.finish_time);
-    const diffDays = Math.ceil((finish.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    const totalAmount = diffDays * car.price_daily
+    const diffDays = Math.ceil(
+      (finish.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    const totalAmount = diffDays * car.price_daily;
 
     // 5️⃣ Order yaratish
     const order = this.orderRepo.create({
@@ -63,14 +86,13 @@ export class OrderService extends BaseService<CreateOrderDto, UpdateOrderDto, Or
     });
 
     return this.orderRepo.save(order);
-
   }
-
 
   /// Tranzaksiya Order va Payment
   async createOrderWithPayment(createOrderDto: CreateOrderDto) {
     return this.dataSource.transaction(async (manager) => {
-      const { car_id, customer_id, start_time, finish_time, ...rest } = createOrderDto;
+      const { car_id, customer_id, start_time, finish_time, ...rest } =
+        createOrderDto;
 
       // 1️.Customer tekshirish
       const customer = await manager.getRepository(Customer).findOne({
@@ -110,9 +132,10 @@ export class OrderService extends BaseService<CreateOrderDto, UpdateOrderDto, Or
       // 5. Total amount hisoblash
       const start = new Date(start_time);
       const finish = new Date(finish_time);
-      const diffDays = Math.ceil((finish.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      const diffDays = Math.ceil(
+        (finish.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+      );
       const totalAmount = diffDays * Number(car.price_daily);
-
 
       // 6. Order yaratish
       const order = manager.getRepository(Order).create({
@@ -125,30 +148,26 @@ export class OrderService extends BaseService<CreateOrderDto, UpdateOrderDto, Or
       });
       await manager.getRepository(Order).save(order);
 
-      
-
-
-
       // 7. Payment yaratish
       const payment = manager.getRepository(Payment).create({
         order,
         payment_date: new Date(),
-        payment_status: true // shu yerda Default true qildim
-      })
+        payment_status: true, // shu yerda Default true qildim
+      });
       await manager.getRepository(Payment).save(payment);
 
-
-      return { message: 'Order and payment created successfully', order, payment };  // Result
-
-
-    })
+      return {
+        message: 'Order and payment created successfully',
+        order,
+        payment,
+      }; // Result
+    });
   }
-
 
   // Get Order
   async getOrders() {
     const orders = await this.orderRepo.find({
-      relations: ['car', 'customer'],
+      relations: ['car', 'customer', 'penalty'],
       order: { start_time: 'DESC' }, // ixtiyoriy, oxirgi buyurtmalar yuqorida
     });
     return orders;
@@ -158,12 +177,11 @@ export class OrderService extends BaseService<CreateOrderDto, UpdateOrderDto, Or
   async getOrderById(id: string) {
     const order = await this.orderRepo.findOne({
       where: { id },
-      relations: ['car', 'customer'],
+      relations: ['car', 'customer', 'penalty'],
     });
     if (!order) throw new NotFoundException('Order not found');
     return order;
   }
-
 
   // Orderni cancell qilish
   async cancelOrder(id: string) {
@@ -173,7 +191,8 @@ export class OrderService extends BaseService<CreateOrderDto, UpdateOrderDto, Or
       relations: ['payment'],
     });
 
-    if (!order) {    // order Nul bop qolsa
+    if (!order) {
+      // order Nul bop qolsa
       throw new NotFoundException('Order not found');
     }
 
@@ -187,7 +206,6 @@ export class OrderService extends BaseService<CreateOrderDto, UpdateOrderDto, Or
 
     // Payment bo‘lsa → refund qilish (wallet’ga pul qaytarish)
 
-
     // ✅ faqat statusni yangilaymiz
     order.status = OrderStatus.CANCELLED;
     await this.orderRepo.save(order);
@@ -196,8 +214,25 @@ export class OrderService extends BaseService<CreateOrderDto, UpdateOrderDto, Or
       message: 'Order bekor qilindi',
       data: order,
     };
-
-
   }
 
+  // 6️⃣ Tugagan orderlarni tekshirib penalty yaratish (cron job yoki service orqali chaqiriladi)
+  async checkAndCreatePenaltyForLateOrders() {
+    const now = new Date();
+    const orders = await this.orderRepo.find({
+      where: { finish_time: MoreThan(new Date(0)), status: OrderStatus.ACTIVE },
+      relations: ['penalty'],
+    });
+
+    for (const order of orders) {
+      if (now > order.finish_time && !order.penalty) {
+        // Penalty DTO tayyorlash
+        const penaltyDto = {
+          order_id: order.id,
+          penalty_day_price: 50, // global yoki order.price asosida
+        };
+        await this.penaltyService.createPenaltyForOrder(penaltyDto);
+      }
+    }
+  }
 }

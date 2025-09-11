@@ -7,6 +7,7 @@ import { Order, Penalty } from 'src/core';
 @Module({
   imports: [TypeOrmModule.forFeature([Penalty, Order])],
   controllers: [PenaltyController],
-  providers: [PenaltyService ],
+  providers: [PenaltyService],
+  exports: [PenaltyService],
 })
 export class PenaltyModule {}

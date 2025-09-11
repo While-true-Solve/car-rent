@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePenaltyDto } from './dto/create-penalty.dto';
 import { UpdatePenaltyDto } from './dto/update-penalty.dto';
 import { BaseService } from 'src/infrastructure/base/base.servise';
@@ -7,14 +11,17 @@ import type { OrderRepository, PenaltyRepository } from 'src/core';
 
 import { InjectRepository } from '@nestjs/typeorm';
 
-
 @Injectable()
-export class PenaltyService extends BaseService<CreatePenaltyDto, UpdatePenaltyDto, Penalty> {
+export class PenaltyService extends BaseService<
+  CreatePenaltyDto,
+  UpdatePenaltyDto,
+  Penalty
+> {
   constructor(
     @InjectRepository(Penalty) private readonly penaltyRepo: PenaltyRepository,
     @InjectRepository(Order) private readonly orderRepo: OrderRepository,
   ) {
-    super(penaltyRepo)
+    super(penaltyRepo);
   }
 
   // Jarimani Saqlash
@@ -22,14 +29,16 @@ export class PenaltyService extends BaseService<CreatePenaltyDto, UpdatePenaltyD
     // 1. Orderni topib olish
     const order = await this.orderRepo.findOne({
       where: { id: createPenaltyDto.order_id },
-      relations: ['penalty'] // penalty bor-yo‘qligini ham olish
-    })
+      relations: ['penalty'], // penalty bor-yo‘qligini ham olish
+    });
     if (!order) {
-      throw new NotFoundException(`Order ${createPenaltyDto.order_id} topilmadi`);
+      throw new NotFoundException(
+        `Order ${createPenaltyDto.order_id} topilmadi`,
+      );
     }
     if (order.penalty) {
       throw new BadRequestException(
-        `Order ${createPenaltyDto.order_id} uchun penalty allaqachon mavjud`
+        `Order ${createPenaltyDto.order_id} uchun penalty allaqachon mavjud`,
       );
     }
 
@@ -38,19 +47,17 @@ export class PenaltyService extends BaseService<CreatePenaltyDto, UpdatePenaltyD
     const finishTime = new Date(order.finish_time);
     if (now <= finishTime) {
       throw new BadRequestException(
-        `Order ${createPenaltyDto.order_id} vaqtida qaytarilgan, penalty kerak emas`
+        `Order ${createPenaltyDto.order_id} vaqtida qaytarilgan, penalty kerak emas`,
       );
     }
 
     // 4. Necha kun kechikkanini hisoblash
     const daysLate = Math.ceil(
       (now.getTime() - finishTime.getTime()) / (1000 * 60 * 60 * 24),
-    )
+    );
 
     // 5. Penalty summasini hisoblash
     const penaltyAmount = daysLate * Number(createPenaltyDto.penalty_day_price);
-
-
 
     // 6. Yangi penalty obyektini yaratish
     const penalty = this.penaltyRepo.create({
@@ -61,23 +68,19 @@ export class PenaltyService extends BaseService<CreatePenaltyDto, UpdatePenaltyD
     });
     // 7. Saqlash
     return await this.penaltyRepo.save(penalty);
-
   }
 
   // Jarimani to‘langan deb qayd etish va DBda saqlash
   async markAsPaid(penaltyId: string): Promise<Penalty> {
-    // 1. Kiruvchi parameterni tekshirish
     if (!penaltyId) {
-      // Agar id berilmagan bo'lsa 400
+      // 1. id nul yoki bosh kelmasligini taminlaymiz
       throw new BadRequestException('Penalty id is required');
     }
-
 
     const penalty = await this.penaltyRepo.findOne({
       where: { id: penaltyId },
       relations: ['order'], // ixtiyoriy — kerak bo'lsa olib kelamiz
-    })
-    // 3. Agar topilmasa 404
+    });
     if (!penalty) {
       throw new NotFoundException(`Penalty with id ${penaltyId} not found`);
     }
@@ -95,15 +98,13 @@ export class PenaltyService extends BaseService<CreatePenaltyDto, UpdatePenaltyD
 
     // 7. Yangilangan natijani qaytaramiz
     return saved;
-
-
-
   }
 
-
   // Yordamchi Method: yani Penalty sumasini xisoblab beradi Order Tablesida korsatib qoyishimiz mumkin
-  async calculatePenalty(orderId: string, penaltyDayPrice: number): Promise<number> {
-    // 1. Orderni topamiz
+  async calculatePenalty(
+    orderId: string,
+    penaltyDayPrice: number,
+  ): Promise<number> {
     const order = await this.orderRepo.findOne({ where: { id: orderId } });
     if (!order) {
       throw new NotFoundException(`Order ${orderId} topilmadi`);
@@ -124,9 +125,5 @@ export class PenaltyService extends BaseService<CreatePenaltyDto, UpdatePenaltyD
 
     // 4. Penalty summasini qaytarish
     return daysLate * penaltyDayPrice;
-
-
-
   }
-
 }

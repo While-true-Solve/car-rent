@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToOne,
+} from 'typeorm';
 import { Car } from './car.entity';
 import { Customer } from './customer.entity';
 import { Payment } from './payment.entity';
@@ -19,16 +25,12 @@ export class Order {
   @Column('decimal')
   total_amount: number;
 
-  @Column(
-    {
-      type: "enum",
-      enum: OrderStatus,
-      default: OrderStatus.ACTIVE, 
-
-    }
-  )
-  status: OrderStatus
-
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.ACTIVE,
+  })
+  status: OrderStatus;
 
   @ManyToOne(() => Car, (car) => car.orders)
   car: Car;
@@ -41,5 +43,4 @@ export class Order {
 
   @OneToOne(() => Penalty, (penalty) => penalty.order)
   penalty: Penalty;
-
 }

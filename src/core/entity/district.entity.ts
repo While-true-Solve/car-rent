@@ -9,6 +9,8 @@ export class District {
   @Column()
   name: string;
 
-  @ManyToOne(() => Region, (region) => region.districts, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Region, (region) => region.districts, {
+    onDelete: 'CASCADE',
+  })
   region: Region;
 }

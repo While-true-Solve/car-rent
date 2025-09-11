@@ -1,4 +1,4 @@
-import { Repository } from "typeorm";
-import { Brand } from "../entity/brand.entity";
+import { Repository } from 'typeorm';
+import { Brand } from '../entity/brand.entity';
 
-export type BrandRepository = Repository<Brand>
+export type BrandRepository = Repository<Brand>;

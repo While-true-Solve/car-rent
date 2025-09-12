@@ -1,13 +1,13 @@
-import { applyDecorators, HttpStatus } from "@nestjs/common";
-import { ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { applyDecorators, HttpStatus } from '@nestjs/common';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 export function SwagSuccessRes(
   summary: string,
   status: number = HttpStatus.OK,
-  description: string = "Successful response",
+  description: string = 'Successful response',
   statusCode: number = HttpStatus.OK,
-  message: string = "success",
-  data: object = {}
+  message: string = 'success',
+  data: object = {},
 ) {
   return applyDecorators(
     ApiOperation({ summary }),
@@ -27,9 +27,9 @@ export function SwagSuccessRes(
 
 export function SwagFailedRes(
   status: number = HttpStatus.BAD_REQUEST,
-  description: string = "Failed response",
+  description: string = 'Failed response',
   statusCode: number = HttpStatus.BAD_REQUEST,
-  errorMessage: string = "Some error occurred"
+  errorMessage: string = 'Some error occurred',
 ) {
   return applyDecorators(
     ApiResponse({

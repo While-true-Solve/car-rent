@@ -19,19 +19,19 @@ import { AuthGuard } from '../../common/guard/auth.guard';
 import { Roles } from 'src/common/decorator/roles-decorator';
 import { UserRole } from 'src/common/enum/user-enum';
 import { SignInDto } from './dto/signin-admin.dto';
-import  type { Response } from 'express';
+import type { Response } from 'express';
 import {
   SwagFailedRes,
   SwagSuccessRes,
 } from 'src/common/decorator/swaggerSuccesRes-decorator';
-import { adminData } from 'src/common/document/swagger';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
 import { ILike } from 'typeorm';
 import { CookieGetter } from 'src/common/decorator/cookie-getter-decorator';
 import { AuthService } from '../auth/auht.service';
-import  { GetRequestUser } from 'src/common/decorator/get-request-user-decorator';
+import { GetRequestUser } from 'src/common/decorator/get-request-user-decorator';
 import type { IPayload } from 'src/common/interface';
+import { adminData } from 'src/common/document';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('admin')
@@ -68,7 +68,14 @@ export class AdminController {
     'admin sign in',
     200,
     'success',
-    adminData,
+    {
+      statusCode: 200,
+      message: 'success',
+      data: {
+        token:
+          'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjI3ZDhlYWZhLTQ5YTYtNDg3MC1iZDQzLTgyOWFlZTQ5ZmM3ZSIsImlzQWN0aXZlIjp0cnVlLCJyb2xlIjoic3VwZXJBZG1pbiIsImlhdCI6MTc1NzY3NjY4OCwiZXhwIjoxNzU3NzYzMDg4fQ.J62pRXCNrJvOjGqscB7UKcsoYWUu3unhKf9Oci5rt1Q',
+      },
+    },
   )
   @SwagFailedRes(
     HttpStatus.UNAUTHORIZED,
@@ -223,7 +230,11 @@ export class AdminController {
   @Roles(UserRole.SUPER_ADMIN, 'ID') /**kallani ishlating jigar */
   @Patch(':id')
   @ApiBearerAuth()
-  update(@Param('id') id: string, @Body() updateAdminDto: UpdateAdminDto, @GetRequestUser('user') user:IPayload) {
+  update(
+    @Param('id') id: string,
+    @Body() updateAdminDto: UpdateAdminDto,
+    @GetRequestUser('user') user: IPayload,
+  ) {
     return this.adminService.updateAdmin(id, updateAdminDto, user);
   }
 

@@ -11,6 +11,8 @@ import { IPayload } from 'src/common/interface';
 import { successRes } from 'src/infrastructure/response/successRes';
 import { Response } from 'express';
 import type { CustomerRepository } from 'src/core';
+import { MoreThan } from 'typeorm';
+import { SignOutCustomerDto } from './dto/signout-customer.dto';
 
 @Injectable()
 export class CustomerService extends BaseService<
@@ -66,12 +68,62 @@ export class CustomerService extends BaseService<
     return successRes({ token: accessToken });
   }
 
-  updateCustomer(id: string, updateCustomerDto: UpdateCustomerDto) {
-    return `This action updates a #${id} comment`;
+  async signOutCustomer(signOutDto: SignOutCustomerDto, res: Response) {
+    const { id } = signOutDto;
+    const customer = await this.customerRepo.findOne({ where: { id } });
+    if (!customer) {
+      throw new BadRequestException('Customer not found');
+    }
+    await this.tokenService.clearCookie(res, 'accesskey');
+
+    return successRes({});
   }
 
-  removeCustomer(id: string) {
-    // customerni o'chirishdan oldin , mashina olganini tekshirish kerak mashina arendaga olgan bolsa o'chirish mumkin emas
-    return `This action removes a #${id} comment`;
+  async updateCustomer(id: string, updateCustomerDto: UpdateCustomerDto) {
+    const { email, phone_number, password, ...rest } = updateCustomerDto;
+
+    const customer = await this.customerRepo.findOne({ where: { id } });
+
+    if (!customer) {
+      throw new BadRequestException('Customer not found..!');
+    }
+
+    if (email && email !== customer.email) {
+      const exists_email = await this.customerRepo.findOne({ where: { email } });
+      if (exists_email) {
+        throw new BadRequestException('Email already exists');
+      }
+      customer.email = email;
+    }
+
+    if (password) {
+      const hashed_password = await this.crypto.encrypt(password);
+      customer.hashed_password = hashed_password;
+    }
+
+    Object.assign(customer, rest);
+
+    await this.customerRepo.save(customer);
+    return successRes(customer);
+  }
+
+  async removeCustomer(id: string) {
+    // customerni o'chirishdan oldin , mashina olganini(order dan finish_time vaqti hozirgi vaqtdan katta bolsa ochirmaslik kerak) tekshirish kerak mashina arendaga olgan bolsa o'chirish mumkin emas
+    const customer = await this.customerRepo.findOne({ where: { id } });
+    if (!customer) {
+      throw new BadRequestException('Customer not found..!');
+    }
+    const activeOrder = await this.customerRepo.manager.getRepository('Order').findOne({
+      where: {
+        customer: { id },
+        finish_time: MoreThan(new Date()),
+      },
+    });
+
+    if (activeOrder) {
+      throw new BadRequestException('Customer has active rental. Cannot be deleted until rental is finished.');
+    }
+    await this.customerRepo.remove(customer);
+    return successRes({});
   }
 }

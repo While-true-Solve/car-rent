@@ -43,6 +43,14 @@ export class TokenService {
     });
   }
 
+  async clearCookie(res: Response, name: string) {
+    res.clearCookie(name, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+  }
+
   async verifyToken(token: string, secretKey: string): Promise<object> {
     return this.jwt.verifyAsync(token, { secret: secretKey });
   }

@@ -1,8 +1,10 @@
 import {
   BadRequestException,
+  ConflictException,
   HttpException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateAdminDto } from './dto/create-admin.dto';
 import { UpdateAdminDto } from './dto/update-admin.dto';
@@ -89,5 +91,41 @@ export class AdminService extends BaseService<
     await this.tokenService.writeCookie(res, 'adminToken', refreshToken, 30);
 
     return successRes({ token: accessToken });
+  }
+  async updateAdmin(
+    id: string,
+    dto: UpdateAdminDto,
+    user: IPayload,
+  ): Promise<ISuccessRes> {
+    const { password, username, ...rest } = dto;
+
+    let admin = await this.adminRepo.findOne({ where: { id } });
+    if (!admin) throw new NotFoundException('admin not found');
+
+    // Username faqat o‘zgarganda tekshiriladi
+    if (username && username !== admin.username) {
+      const exists = await this.adminRepo.findOne({ where: { username } });
+      if (exists) {
+        throw new ConflictException('username already exists');
+      }
+    }
+
+    // Update obyektini yig‘ish
+    const updateData: Partial<AdminEntity> = {
+      ...rest,
+      ...(username && { username }),
+    };
+
+    // Parolni yangilash faqat SUPER_ADMIN bo‘lsa
+    if (password && user.role === UserRole.SUPER_ADMIN) {
+      updateData.hashed_password = await this.crypto.encrypt(password);
+    }
+
+    // Update qilish
+    await this.adminRepo.update(id, updateData);
+
+    // Yangilangan adminni qaytarish
+    admin = await this.adminRepo.findOne({ where: { id } });
+    return successRes(admin);
   }
 }

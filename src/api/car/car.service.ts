@@ -1,11 +1,12 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCarDto } from './dto/create-car.dto';
 import { UpdateCarDto } from './dto/update-car.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brand, Car, District } from 'src/core';
+import { Brand, Car, District, Order } from 'src/core';
 import { BaseService } from 'src/infrastructure/base/base.servise';
 import { successRes } from 'src/infrastructure/response/successRes';
 import type { BrandRepository, carRepository, DistrictRepository } from 'src/core';
+import type{ orderRepository } from 'src/core/repository/order.repository';
 
 @Injectable()
 export class CarService extends BaseService<CreateCarDto, UpdateCarDto, Car> {
@@ -13,6 +14,7 @@ export class CarService extends BaseService<CreateCarDto, UpdateCarDto, Car> {
     @InjectRepository(Car) private readonly carRepo: carRepository,
     @InjectRepository(Brand) private readonly brandRepo: BrandRepository,
     @InjectRepository(District) private readonly districtRepo: DistrictRepository,
+    @InjectRepository(Order) private readonly orderRepo: orderRepository,
   ) {
     super(carRepo);
   }
@@ -37,21 +39,21 @@ export class CarService extends BaseService<CreateCarDto, UpdateCarDto, Car> {
   }
 
 
-  async findAllCars() {
-    return this.carRepo.find({ relations: ['brand', 'district'] });
-  }
+  // async findAllCars() {
+  //   return this.carRepo.find({ relations: ['brand', 'district'] });
+  // }
 
 
-  async findOneCar(id: string) {
-    const car = await this.carRepo.findOne({
-      where: { id },
-      relations: ['brand', 'district']
-    });
+  // async findOneCar(id: string) {
+  //   const car = await this.carRepo.findOne({
+  //     where: { id },
+  //     relations: ['brand', 'district']
+  //   });
 
-    if (!car) throw new NotFoundException('Car not found');
+  //   if (!car) throw new NotFoundException('Car not found');
 
-    return successRes(car);
-  }
+  //   return successRes(car);
+  // }
 
 
   async updateCar(id: string, updateCarDto: UpdateCarDto) {
@@ -91,7 +93,7 @@ export class CarService extends BaseService<CreateCarDto, UpdateCarDto, Car> {
       throw new NotFoundException('Car not found')
     }
 
-    await this.carRepo.delete(car)
+    await this.carRepo.remove(car)
     
     return successRes({})
   }

@@ -19,3 +19,5 @@ export * from './repository/admin.repository';
 export * from './repository/car.repository'
 export * from './repository/brand.rpository'
 export * from './repository/district.repository'
+export * from './repository/adopted_car.repository'
+export * from './repository/customer.repository'

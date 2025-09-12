@@ -17,17 +17,17 @@ export class AdopdetCarController {
 
   @Post()
   create(@Body() createAdopdetCarDto: CreateAdopdetCarDto) {
-    return this.adopdetCarService.create(createAdopdetCarDto);
+    return this.adopdetCarService.createAdoped(createAdopdetCarDto);
   }
 
   @Get()
   findAll() {
-    return this.adopdetCarService.findAll();
+    return this.adopdetCarService.findAllAdopdet();
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.adopdetCarService.findOne(+id);
+    return this.adopdetCarService.findOne(id);
   }
 
   @Patch(':id')
@@ -35,11 +35,11 @@ export class AdopdetCarController {
     @Param('id') id: string,
     @Body() updateAdopdetCarDto: UpdateAdopdetCarDto,
   ) {
-    return this.adopdetCarService.update(+id, updateAdopdetCarDto);
+    return this.adopdetCarService.updateAdopdet_car(id, updateAdopdetCarDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.adopdetCarService.remove(+id);
+    return this.adopdetCarService.removeAdopdet_car(id);
   }
 }

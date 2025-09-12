@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { ClassCars } from './class-car.entity';
 
 @Entity('class')
@@ -11,4 +11,11 @@ export class Class {
 
   @OneToMany(() => ClassCars, (cc) => cc.classEntity)
   classCars: ClassCars[];
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
+
 }

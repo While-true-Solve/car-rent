@@ -18,7 +18,7 @@ export class CarService extends BaseService<CreateCarDto, UpdateCarDto, Car> {
   ) {
     super(carRepo);
   }
-
+ 
 
   async createCar(createCarDto: CreateCarDto) {
     const brand = await this.brandRepo.findOne({where: {id: createCarDto.brand_id}})

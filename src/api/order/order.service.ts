@@ -39,7 +39,7 @@ export class OrderService extends BaseService<
     super(orderRepo);
   }
 
-  // Har soatda ishlaydi , Deadline tugashiga 3 soat qolganda bildirishnoma
+  // Har soatda ishlaydi , Deadline tugashiga 3 soat qolganda bildirishnoma!
   @Cron(CronExpression.EVERY_HOUR)
   async notifyBeforeDeadline() {
     const now = new Date();

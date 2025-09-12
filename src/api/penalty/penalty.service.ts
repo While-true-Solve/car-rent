@@ -10,6 +10,8 @@ import { Order, Penalty } from 'src/core';
 import type { OrderRepository, PenaltyRepository } from 'src/core';
 
 import { InjectRepository } from '@nestjs/typeorm';
+import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
+import { IPage } from 'src/common/interface';
 
 @Injectable()
 export class PenaltyService extends BaseService<
@@ -68,6 +70,32 @@ export class PenaltyService extends BaseService<
     });
     // 7. Saqlash
     return await this.penaltyRepo.save(penalty);
+  }
+
+  // Penaltylar ni paginationda chqarish
+  async findAllPaginated(query: QueryPaginationDto): Promise<IPage<Penalty>> {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 10;
+
+    // Skip ni hisoblaymiz
+    const skip = (page - 1) * limit;
+
+    // DBdan ma'lumot va count ni olamiz
+    const [data, totalElements] = await this.penaltyRepo.findAndCount({
+      skip,
+      take: limit,
+      order: { created_at: 'DESC' }, // ixtiyoriy, oxirgi yaratilganlar yuqorida
+      relations: ['order'], // kerak bo‘lsa
+    });
+
+    const totalPages = Math.ceil(totalElements / limit);
+
+    return {
+      data,
+      totalElements,
+      totalPages,
+      pageSize: limit,
+    };
   }
 
   // Jarimani to‘langan deb qayd etish va DBda saqlash

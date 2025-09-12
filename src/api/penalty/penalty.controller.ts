@@ -8,10 +8,12 @@ import {
   Delete,
   applyDecorators,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { PenaltyService } from './penalty.service';
 import { CreatePenaltyDto } from './dto/create-penalty.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
 
 // === Swagger dekoratorlari shu faylda ===
 function SwagSuccessRes(
@@ -106,6 +108,20 @@ export class PenaltyController {
   )
   findAll() {
     return this.penaltyService.findAll();
+  }
+
+  // Pagination Penalty
+  @Get('paginated')
+  @SwagSuccessRes(
+    'Penaltylar paginated',
+    200,
+    'Penaltylar paginated ro‘yxati',
+    200,
+    'success',
+    { data: [], totalElements: 0, totalPages: 0, pageSize: 0 },
+  )
+  async findAllPaginated(@Query() query: QueryPaginationDto) {
+    return this.penaltyService.findAllPaginated(query);
   }
 
   @Get(':id')

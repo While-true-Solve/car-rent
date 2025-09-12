@@ -13,10 +13,13 @@ import type {
   OrderRepository,
 } from '../../core/';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, MoreThan } from 'typeorm'; // DB connection va ORM’ning markaziy boshqaruvchisi.
+import { Between, DataSource, LessThan, MoreThan } from 'typeorm'; // DB connection va ORM’ning markaziy boshqaruvchisi.
 import { OrderStatus } from 'src/common/enum/order-status-enum';
 import { PenaltyService } from '../penalty/penalty.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
+import { RepositoryPager } from 'src/infrastructure/pagination';
+import { NotificationService } from 'src/infrastructure/notifiaction/Notification.service';
 
 @Injectable()
 export class OrderService extends BaseService<
@@ -31,14 +34,66 @@ export class OrderService extends BaseService<
     @InjectRepository(Car) private readonly carRepo: CarRepository,
     private dataSource: DataSource,
     private penaltyService: PenaltyService, // <-- inject qilyapmiz
+    private notificationService: NotificationService,
   ) {
     super(orderRepo);
   }
 
+  // Har soatda ishlaydi , Deadline tugashiga 3 soat qolganda bildirishnoma
+  @Cron(CronExpression.EVERY_HOUR)
+  async notifyBeforeDeadline() {
+    const now = new Date();
+    const threeHoursLater = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+
+    const orders = await this.orderRepo.find({
+      where: {
+        finish_time: Between(now, threeHoursLater),
+        status: OrderStatus.ACTIVE,
+      },
+      relations: ['customer'],
+    });
+    for (const order of orders) {
+      await this.notificationService.sendDeadlineSoon(order.customer, order); // customer email yoki socketga xabar yuborish
+    }
+  }
+
+  // Har kuni 00:00 da ishlaydi ,  Deadline o‘tgan orderlarga penalty hisoblab yozadi
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT) // Har kun 00: 00 da ishlaydi
   async handleLateOrders() {
     console.log('Cron: kechikkan orderlar tekshirildi ✅');
     await this.checkAndCreatePenaltyForLateOrders();
+  }
+
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  async HandleLateOrders() {
+    const now = new Date();
+
+    const lateOrders = await this.orderRepo.find({
+      where: { finish_time: LessThan(now), status: OrderStatus.ACTIVE },
+      relations: ['customer'],
+    });
+
+    for (const order of lateOrders) {
+      const daysLate =
+        Math.floor(
+          (now.getTime() - order.finish_time.getTime()) / (1000 * 60 * 60 * 24),
+        ) + 1;
+
+      const penaltyAmount = daysLate * 100;
+
+      // 1️⃣ Penalty yozish
+      await this.penaltyService.createPenaltyForOrder({
+        order_id: order.id.toString(), // number → string
+        penalty_day_price: 100, // kunlik jarima narxi
+      });
+
+      // 2️⃣ Mijozni ogohlantirish
+      await this.notificationService.sendLateOrder(
+        order.customer,
+        order,
+        penaltyAmount,
+      );
+    }
   }
 
   // Orderni ozini  Create qilish Tranzaksiya mavjud emas
@@ -88,7 +143,7 @@ export class OrderService extends BaseService<
     return this.orderRepo.save(order);
   }
 
-  /// Tranzaksiya Order va Payment
+  /// dataSource orqali Tranzaksiya Order va Payment
   async createOrderWithPayment(createOrderDto: CreateOrderDto) {
     return this.dataSource.transaction(async (manager) => {
       const { car_id, customer_id, start_time, finish_time, ...rest } =
@@ -173,6 +228,30 @@ export class OrderService extends BaseService<
     return orders;
   }
 
+  // Orderlarni Pagination orqali ko'rish
+  async getOrdersPaginated(query: QueryPaginationDto) {
+    const { page = 1, limit = 10, query: searchQuery } = query;
+
+    // Find options
+    const findOptions: any = {
+      take: limit,
+      skip: page,
+      relations: ['car', 'customer', 'penalty'],
+      order: { start_time: 'DESC' },
+    };
+
+    // Agar qidiruv so‘rovi bo‘lsa
+    if (searchQuery) {
+      findOptions.where = [
+        { customer: { name: searchQuery } },
+        { car: { name: searchQuery } },
+      ];
+    }
+
+    // Pagination bilan data olish
+    return RepositoryPager.findAll(this.orderRepo, findOptions);
+  }
+
   // Get Order By Id
   async getOrderById(id: string) {
     const order = await this.orderRepo.findOne({
@@ -216,7 +295,7 @@ export class OrderService extends BaseService<
     };
   }
 
-  // 6️⃣ Tugagan orderlarni tekshirib penalty yaratish (cron job yoki service orqali chaqiriladi)
+  // Tugagan orderlarni tekshirib penalty yaratish (cron job yoki service orqali chaqiriladi)
   async checkAndCreatePenaltyForLateOrders() {
     const now = new Date();
     const orders = await this.orderRepo.find({
@@ -233,6 +312,95 @@ export class OrderService extends BaseService<
         };
         await this.penaltyService.createPenaltyForOrder(penaltyDto);
       }
+    }
+  }
+
+  // Rolback orqali Tranzaksiya Controllerda buni chaqirmabman istasangiz buni tanlang
+  async createOrderWithPaymentRolback(createOrderDto: CreateOrderDto) {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const { car_id, customer_id, start_time, finish_time, ...rest } =
+        createOrderDto;
+
+      // 1. Customer tekshirish
+      const customer = await queryRunner.manager.findOne(Customer, {
+        where: { id: customer_id },
+      });
+      if (!customer) {
+        throw new NotFoundException('Customer not found');
+      }
+
+      // 2. Wallet tekshirish
+      const wallet = await queryRunner.manager.findOne(Wallet, {
+        where: { customer: { id: customer_id } },
+      });
+      if (!wallet) {
+        throw new BadRequestException('Customer wallet not found');
+      }
+
+      // 3. Car tekshirish
+      const car = await queryRunner.manager.findOne(Car, {
+        where: { id: car_id },
+      });
+      if (!car) {
+        throw new NotFoundException('Car not found');
+      }
+
+      // 4. Car band emasligini tekshirish
+      const activeOrder = await queryRunner.manager.findOne(Order, {
+        where: {
+          car: { id: car_id },
+          finish_time: MoreThan(new Date()),
+        },
+      });
+      if (activeOrder) {
+        throw new BadRequestException('Car already rented');
+      }
+
+      // 5. Total amount hisoblash
+      const start = new Date(start_time);
+      const finish = new Date(finish_time);
+      const diffDays = Math.ceil(
+        (finish.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+      );
+      const totalAmount = diffDays * Number(car.price_daily);
+
+      // 6. Order yaratish
+      const order = queryRunner.manager.create(Order, {
+        ...rest,
+        car,
+        customer,
+        total_amount: totalAmount,
+        start_time: start,
+        finish_time: finish,
+      });
+      await queryRunner.manager.save(order);
+
+      // 7. Payment yaratish
+      const payment = queryRunner.manager.create(Payment, {
+        order,
+        payment_date: new Date(),
+        payment_status: true,
+      });
+      await queryRunner.manager.save(payment);
+
+      // ✅ Hamma joyi to‘g‘ri bo‘lsa commit
+      await queryRunner.commitTransaction();
+
+      return {
+        message: 'Order and payment created successfully',
+        order,
+        payment,
+      };
+    } catch (error) {
+      // Xato bo‘lsa rollback
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      // Connectionni yopish
+      await queryRunner.release();
     }
   }
 }

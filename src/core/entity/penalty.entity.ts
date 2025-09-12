@@ -4,6 +4,8 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Order } from './order.entity';
 
@@ -20,6 +22,12 @@ export class Penalty {
 
   @Column({ default: false })
   is_paid_penalty: boolean;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
 
   @OneToOne(() => Order, (order) => order.penalty, { onDelete: 'CASCADE' })
   @JoinColumn()

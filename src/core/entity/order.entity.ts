@@ -4,6 +4,8 @@ import {
   Column,
   ManyToOne,
   OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Car } from './car.entity';
 import { Customer } from './customer.entity';
@@ -24,6 +26,12 @@ export class Order {
 
   @Column('decimal')
   total_amount: number;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
 
   @Column({
     type: 'enum',

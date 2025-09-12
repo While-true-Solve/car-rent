@@ -8,11 +8,13 @@ import {
   Delete,
   HttpStatus,
   applyDecorators,
+  Query,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Cron } from '@nestjs/schedule';
+import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
 
 // === Swagger dekoratorlari to‘g‘ridan-to‘g‘ri shu faylda yozilgan ===
 function SwagSuccessRes(
@@ -126,6 +128,37 @@ export class OrderController {
   )
   findAll() {
     return this.orderService.getOrders();
+  }
+
+  @Get('paginated')
+  @SwagSuccessRes(
+    'Orderlarni paginated olish',
+    200,
+    'Pagination bilan Orderlar',
+    200,
+    'success',
+    {
+      data: [
+        { id: 1, product: 'Phone', price: 200 },
+        { id: 2, product: 'Laptop', price: 500 },
+      ],
+      totalElements: 50,
+      totalPages: 5,
+      pageSize: 10,
+      currentPage: 1,
+      from: 1,
+      to: 10,
+    },
+  )
+  @SwagFailedRes(
+    'Pagination bilan Orderlarni olish - xato',
+    400,
+    'Sorovda xato',
+    400,
+    'Invalid request',
+  )
+  async getOrdersPaginated(@Query() query: QueryPaginationDto) {
+    return this.orderService.getOrdersPaginated(query);
   }
 
   @Get(':id')

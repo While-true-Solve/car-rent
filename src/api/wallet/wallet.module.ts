@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Customer, Wallet } from 'src/core';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Wallet,Customer])],
+  imports: [TypeOrmModule.forFeature([Wallet, Customer])],
   controllers: [WalletController],
   providers: [WalletService],
 })

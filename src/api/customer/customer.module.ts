@@ -11,7 +11,13 @@ import { CommentModule } from '../comment/comment.module';
 import { AdopdetCarModule } from '../adopdet-car/adopdet-car.module';
 
 @Module({
-  imports:[TypeOrmModule.forFeature([Customer]), OrderModule, WalletModule, CommentModule, AdopdetCarModule],
+  imports: [
+    TypeOrmModule.forFeature([Customer]),
+    OrderModule,
+    WalletModule,
+    CommentModule,
+    AdopdetCarModule,
+  ],
   controllers: [CustomerController],
   providers: [CustomerService, CryptoService, TokenService],
 })

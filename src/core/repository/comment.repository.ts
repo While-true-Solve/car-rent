@@ -1,4 +1,4 @@
-import { Repository } from "typeorm";
-import { Comments } from "..";
+import { Repository } from 'typeorm';
+import { Comments } from '..';
 
 export type CommentRepository = Repository<Comments>;

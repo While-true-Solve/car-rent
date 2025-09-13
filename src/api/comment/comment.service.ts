@@ -11,16 +11,23 @@ import { successRes } from 'src/infrastructure/response/successRes';
 import { ISuccessRes } from 'src/common/interface';
 
 @Injectable()
-export class CommentService extends BaseService<CreateCommentDto, UpdateCommentDto, Comment> {
+export class CommentService extends BaseService<
+  CreateCommentDto,
+  UpdateCommentDto,
+  Comment
+> {
   constructor(
     @InjectRepository(Comments) private readonly commentRepo: CommentRepository,
-    @InjectRepository(Customer) private readonly customerRepo: CustomerRepository,
-    @InjectRepository(Car) private readonly carRepo: CarRepository
+    @InjectRepository(Customer)
+    private readonly customerRepo: CustomerRepository,
+    @InjectRepository(Car) private readonly carRepo: CarRepository,
   ) {
-    super(commentRepo)
+    super(commentRepo);
   }
 
-  async createComment(createCommentDto: CreateCommentDto): Promise<ISuccessRes> {
+  async createComment(
+    createCommentDto: CreateCommentDto,
+  ): Promise<ISuccessRes> {
     const { car_id, customer_id, impression } = createCommentDto;
 
     const existsCar = await this.carRepo.findOne({ where: { id: car_id } });
@@ -28,7 +35,9 @@ export class CommentService extends BaseService<CreateCommentDto, UpdateCommentD
       throw new NotFoundException('No such car found!!!'); //Bunday mashina topilmadi!!!
     }
 
-    const existsCustomer = await this.customerRepo.findOne({ where: { id: customer_id } });
+    const existsCustomer = await this.customerRepo.findOne({
+      where: { id: customer_id },
+    });
     if (!existsCustomer) {
       throw new NotFoundException('No such customer found!!!'); //Bunday mijoz topilmadi!!!
     }
@@ -36,7 +45,7 @@ export class CommentService extends BaseService<CreateCommentDto, UpdateCommentD
     const newComment = this.commentRepo.create({
       car: existsCar,
       customer: existsCustomer,
-      impression
+      impression,
     });
 
     await this.commentRepo.save(newComment);
@@ -44,7 +53,10 @@ export class CommentService extends BaseService<CreateCommentDto, UpdateCommentD
     return successRes(newComment);
   }
 
-  async updateComment(id: string, updateCommentDto: UpdateCommentDto): Promise<ISuccessRes> {
+  async updateComment(
+    id: string,
+    updateCommentDto: UpdateCommentDto,
+  ): Promise<ISuccessRes> {
     const { car_id, customer_id, impression } = updateCommentDto;
 
     const existingComment = await this.commentRepo.findOne({ where: { id } });
@@ -61,7 +73,9 @@ export class CommentService extends BaseService<CreateCommentDto, UpdateCommentD
     }
 
     if (customer_id) {
-      const existsCustomer = await this.customerRepo.findOne({ where: { id: customer_id } });
+      const existsCustomer = await this.customerRepo.findOne({
+        where: { id: customer_id },
+      });
       if (!existsCustomer) {
         throw new NotFoundException('No such customer found!!!'); //Bunday mijoz topilmadi!!!
       }

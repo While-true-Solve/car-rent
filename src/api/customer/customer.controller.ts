@@ -15,7 +15,7 @@ import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { SignInCustomerDto } from './dto/signin-customer.dto';
 import { SignOutCustomerDto } from './dto/signout-customer.dto';
-import type{ Response } from 'express';
+import type { Response } from 'express';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/decorator/roles-decorator';
@@ -27,12 +27,12 @@ import { ILike } from 'typeorm';
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('customer')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) { }
+  constructor(private readonly customerService: CustomerService) {}
 
   @Roles('public')
   @Post()
   create(@Body() createCustomerDto: CreateCustomerDto) {
-    return this.customerService.createCustomer(createCustomerDto);
+    return this.customerService.registerCustomer(createCustomerDto);
   }
 
   @Get()
@@ -41,7 +41,7 @@ export class CustomerController {
     const { query, page, limit } = queryDto;
     const where = query
       ? { email: ILike(`%${query}%`), role: UserRole.ADMIN }
-      : { role: UserRole.ADMIN};
+      : { role: UserRole.ADMIN };
     return this.customerService.findAllWithPagination({
       where,
       order: { created_at: 'DESC' },
@@ -60,7 +60,7 @@ export class CustomerController {
     return this.customerService.findAll();
   }
 
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, "ID")
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.customerService.findOneById(id);

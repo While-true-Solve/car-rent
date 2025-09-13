@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { UserRole } from 'src/common/enum/user-enum';
@@ -11,28 +16,41 @@ import type { WalletRepository } from 'src/core/repository/wallet.repository';
 import { ISuccessRes } from 'src/common/interface';
 
 @Injectable()
-export class WalletService extends BaseService<CreateWalletDto, UpdateWalletDto, Wallet> {
+export class WalletService extends BaseService<
+  CreateWalletDto,
+  UpdateWalletDto,
+  Wallet
+> {
   constructor(
     @InjectRepository(Wallet) private readonly walletRepo: WalletRepository,
-    @InjectRepository(Customer) private readonly customerRepo: CustomerRepository
+    @InjectRepository(Customer)
+    private readonly customerRepo: CustomerRepository,
   ) {
-    super(walletRepo)
+    super(walletRepo);
   }
 
   // wallet create bo'ladigan vaqt customer_id kiritadi shuni tekshirish kerak .
   //  customer_id mavjudmi? va shu customer_id surov junatdigan odamni idisiga tengmi
-  async createeWallet(createWalletDto: CreateWalletDto, user: any): Promise<ISuccessRes> {
+  async createeWallet(
+    createWalletDto: CreateWalletDto,
+    user: any,
+  ): Promise<ISuccessRes> {
     const { customer_id, card } = createWalletDto;
-    const customer = await this.customerRepo.findOne({ where: { id: customer_id } });
+    const customer = await this.customerRepo.findOne({
+      where: { id: customer_id },
+    });
     if (!customer) {
       throw new NotFoundException('Bunday customer topilmadi..!');
     }
 
-    if (!(user.id === customer_id || [UserRole.ADMIN, UserRole.SUPER_ADMIN].includes(user.role))) {
-      throw new ForbiddenException('Sizda wallet yaratishga ruxsatingiz yo\'q');
+    if (
+      !(
+        user.id === customer_id ||
+        [UserRole.ADMIN, UserRole.SUPER_ADMIN].includes(user.role)
+      )
+    ) {
+      throw new ForbiddenException("Sizda wallet yaratishga ruxsatingiz yo'q");
     }
-
-
 
     if (card) {
       const existsCard = await this.walletRepo.findOne({ where: { card } });
@@ -45,18 +63,21 @@ export class WalletService extends BaseService<CreateWalletDto, UpdateWalletDto,
 
     const newWallet = this.walletRepo.create({
       customer,
-      card
+      card,
     });
 
-    const wallet = await this.walletRepo.save(newWallet)
+    const wallet = await this.walletRepo.save(newWallet);
     return successRes(wallet);
   }
 
-
-  async updateWallet(id: string, updateWalletDto: UpdateWalletDto, user: any): Promise<ISuccessRes> {
+  async updateWallet(
+    id: string,
+    updateWalletDto: UpdateWalletDto,
+    user: any,
+  ): Promise<ISuccessRes> {
     const wallet = await this.walletRepo.findOne({
       where: { id },
-      relations: ['customer']
+      relations: ['customer'],
     });
 
     if (!wallet) {
@@ -71,21 +92,31 @@ export class WalletService extends BaseService<CreateWalletDto, UpdateWalletDto,
       }
     }
 
-    const customer = await this.customerRepo.findOne({ where: { id: customer_id } });
+    const customer = await this.customerRepo.findOne({
+      where: { id: customer_id },
+    });
     if (!customer) {
       throw new NotFoundException('Bunday customer topilmadi..!');
     }
 
-    if (!(user.id === customer_id || [UserRole.ADMIN, UserRole.SUPER_ADMIN].includes(user.role))) {
-      throw new ForbiddenException('Sizda wallet yaratishga ruxsatingiz yo\'q');
+    if (
+      !(
+        user.id === customer_id ||
+        [UserRole.ADMIN, UserRole.SUPER_ADMIN].includes(user.role)
+      )
+    ) {
+      throw new ForbiddenException("Sizda wallet yaratishga ruxsatingiz yo'q");
     }
 
     await this.walletRepo.update(id, {
       customer,
-      card
+      card,
     });
 
-    const updateWallet = await this.walletRepo.findOne({ where: { id }, relations: ['customer'] });
+    const updateWallet = await this.walletRepo.findOne({
+      where: { id },
+      relations: ['customer'],
+    });
     return successRes(updateWallet);
   }
 }

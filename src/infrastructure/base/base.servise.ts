@@ -10,7 +10,7 @@ import {
 } from 'src/common/interface';
 
 export class BaseService<CreateDto, UpdateDto, Entity> {
-  constructor(private readonly repository: Repository<any>) { }
+  constructor(private readonly repository: Repository<any>) {}
 
   get getRepository() {
     return this.repository;

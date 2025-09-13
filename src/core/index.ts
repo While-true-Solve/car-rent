@@ -18,3 +18,6 @@ export * from './entity/penalty.entity';
 export * from './repository/admin.repository';
 export * from './repository/brand.rpository';
 export * from './repository/customer.repository';
+export * from './repository/class.repository';
+export * from './repository/region.repository';
+export * from './repository/district-data';

@@ -59,13 +59,13 @@ export class OrderService extends BaseService<
 
   // Har kuni 00:00 da ishlaydi ,  Deadline o‘tgan orderlarga penalty hisoblab yozadi
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT) // Har kun 00: 00 da ishlaydi
-  async handleLateOrders() {
+  async handleLateOrdersPenalty() {
     console.log('Cron: kechikkan orderlar tekshirildi ✅');
     await this.checkAndCreatePenaltyForLateOrders();
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async HandleLateOrders() {
+  async handleLateOrdersNotification() {
     const now = new Date();
 
     const lateOrders = await this.orderRepo.find({

@@ -31,4 +31,8 @@ export const config = {
     fullName: String(process.env.FULL_NAME),
     password: String(process.env.PASSWORD),
   },
+  Email: {
+    user: String(process.env.EMAIL_USER),
+    pass: String(process.env.EMAIL_PASS)
+  }
 };

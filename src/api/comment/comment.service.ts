@@ -14,7 +14,7 @@ import { ISuccessRes } from 'src/common/interface';
 export class CommentService extends BaseService<
   CreateCommentDto,
   UpdateCommentDto,
-  Comment
+  Comments
 > {
   constructor(
     @InjectRepository(Comments) private readonly commentRepo: CommentRepository,

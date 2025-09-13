@@ -18,7 +18,6 @@ import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
 
 import { MailerModule } from '@nestjs-modules/mailer';
-import { from } from 'rxjs';
 
 const { url, sync } = config.DB;
 

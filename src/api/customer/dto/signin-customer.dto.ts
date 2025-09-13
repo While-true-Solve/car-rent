@@ -1,6 +1,13 @@
-import { OmitType } from '@nestjs/swagger';
-import { CreateCustomerDto } from './create-customer.dto';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, MinLength } from 'class-validator';
 
-export class SignInCustomerDto extends OmitType(CreateCustomerDto, [
-  'address',
-] as const) {}
+export class SignInCustomerDto {
+  @ApiProperty({ type: 'string', example: 'jorabek@gmail.com' })
+  @IsEmail()
+  email: string;
+
+  @ApiProperty({ type: 'string', example: 'Parol123_' })
+  @IsString()
+  @MinLength(6)
+  password: string;
+}

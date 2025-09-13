@@ -27,7 +27,7 @@ export class Customer {
   email: string;
 
   @Column()
-  hashed_password: string;
+  password: string;
 
   @Column({ nullable: true })
   adress: string;
@@ -52,6 +52,9 @@ export class Customer {
 
   @Column({ nullable: true })
   otp: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  otp_expires: Date;
 
   @Column({ default: false })
   is_verified: boolean;

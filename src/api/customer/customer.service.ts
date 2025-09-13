@@ -1,4 +1,4 @@
-import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { BaseService } from 'src/infrastructure/base/base.servise';
@@ -10,11 +10,13 @@ import { SignInCustomerDto } from './dto/signin-customer.dto';
 import { IPayload, ISuccessRes } from 'src/common/interface';
 import { successRes } from 'src/infrastructure/response/successRes';
 import { Response } from 'express';
-import type { CustomerRepository } from 'src/core';
 import { MoreThan } from 'typeorm';
 import { SignOutCustomerDto } from './dto/signout-customer.dto';
 import { LoginCustomerDto } from './dto/login.customer-otp.dto';
 import { MailerService } from '@nestjs-modules/mailer';
+import type { CustomerRepository } from 'src/core';
+import { ForgetPassDto } from './dto/forget-pass.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
 
 @Injectable()
 export class CustomerService extends BaseService<
@@ -32,9 +34,8 @@ export class CustomerService extends BaseService<
     super(customerRepo);
   }
 
-  async registerCustomer(
-    createCustomerDto: CreateCustomerDto,
-  ): Promise<ISuccessRes> {
+  async registerCustomer(createCustomerDto: CreateCustomerDto,): Promise<ISuccessRes> {
+
     const { phone_number, email, password, ...rest } = createCustomerDto;
 
     const exists_number = await this.customerRepo.findOne({
@@ -55,7 +56,7 @@ export class CustomerService extends BaseService<
       ...rest,
       email,
       phone_number,
-      hashed_password,
+      password: hashed_password,
       otp,
       is_verified: false,
     } as any);
@@ -74,14 +75,14 @@ export class CustomerService extends BaseService<
     });
   }
 
-  async loginCustomer(loginCustomerDto: LoginCustomerDto) {
+  async loginCustomer(loginCustomerDto: LoginCustomerDto): Promise<ISuccessRes> {
     const { email, otpPass } = loginCustomerDto;
     const customer = await this.customerRepo.findOne({ where: { email } });
     if (!customer) {
       throw new BadRequestException('Customer not found');
     }
 
-    if (customer.otp !== String(otpPass)) {
+    if (customer.otp !== otpPass) {
       throw new BadRequestException('Invalid OTP. Please try again.');
     }
 
@@ -93,10 +94,44 @@ export class CustomerService extends BaseService<
     });
   }
 
-  async signInCustomer(
-    signInCustomerDto: SignInCustomerDto,
-    res: Response,
-  ): Promise<ISuccessRes> {
+  async forgetPass(forgetPass: ForgetPassDto): Promise<ISuccessRes> {
+    const { email } = forgetPass;
+
+    const customer = await this.customerRepo.findOne({ where: { email } });
+    if (!customer) {
+      throw new NotFoundException('Unable to find such email!');
+    }
+
+    // 6 xonali OTP yaratish
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await this.customerRepo.update(
+      { email },
+      {
+        otp,
+        otp_expires: new Date(Date.now() + 5 * 60 * 1000), // 5 daqiqa amal qiladi
+      },
+    );
+
+    // OTP ni emailga yuborish (masalan nodemailer bilan)
+    await this.mailService.sendMail({
+      to: email,
+      subject: 'Password Reset OTP',
+      text: `Your OTP code is ${otp}. It will expire in 5 minutes.`,
+    });
+
+    return successRes({
+      message: 'OTP sent to your email.',
+    });
+  } //emailga otp jonatish
+    
+  async verifyOtp(verifyOtpDto: VerifyOtpDto) {
+    const { email, otp } = verifyOtpDto;
+    
+  } // jonatilgan otp ni tekshirib confirmning linkini berish
+  // confirmPass //password ni yangilash
+
+  async signInCustomer(signInCustomerDto: SignInCustomerDto,res: Response): Promise<ISuccessRes> {
     const { email, password } = signInCustomerDto;
 
     const customer = await this.customerRepo.findOne({ where: { email } });
@@ -106,7 +141,7 @@ export class CustomerService extends BaseService<
 
     const isMatchPassword = await this.crypto.decrypt(
       password,
-      customer?.hashed_password as any,
+      customer?.password as any,
     );
     if (!isMatchPassword) {
       throw new BadRequestException('username or password incorrect');
@@ -126,10 +161,7 @@ export class CustomerService extends BaseService<
     return successRes({ token: accessToken });
   }
 
-  async signOutCustomer(
-    signOutDto: SignOutCustomerDto,
-    res: Response,
-  ): Promise<ISuccessRes> {
+  async signOutCustomer(signOutDto: SignOutCustomerDto,res: Response): Promise<ISuccessRes> {
     const { id } = signOutDto;
     const customer = await this.customerRepo.findOne({ where: { id } });
     if (!customer) {
@@ -140,10 +172,7 @@ export class CustomerService extends BaseService<
     return successRes({});
   }
 
-  async updateCustomer(
-    id: string,
-    updateCustomerDto: UpdateCustomerDto,
-  ): Promise<ISuccessRes> {
+  async updateCustomer(id: string,updateCustomerDto: UpdateCustomerDto): Promise<ISuccessRes> {
     const { email, phone_number, password, ...rest } = updateCustomerDto;
 
     const customer = await this.customerRepo.findOne({ where: { id } });
@@ -172,7 +201,7 @@ export class CustomerService extends BaseService<
 
     if (password) {
       const hashed_password = await this.crypto.encrypt(password);
-      customer.hashed_password = hashed_password;
+      customer.password = hashed_password;
     }
 
     Object.assign(customer, rest);

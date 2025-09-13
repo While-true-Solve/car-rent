@@ -8,166 +8,99 @@ import {
   Delete,
   HttpStatus,
   applyDecorators,
+  UseGuards,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { AuthGuard } from 'src/common/guard/auth.guard';
+import { RolesGuard } from 'src/common/guard/roles.guard';
+import { Roles } from 'src/common/decorator/roles-decorator';
+import { UserRole } from 'src/common/enum/user-enum';
+import { SwagFailedRes, SwagSuccessRes } from 'src/common/decorator/swaggerSuccesRes-decorator';
+import { paymentData } from 'src/common/document';
 
-// === Swagger dekoratorlari shu faylda ===
-function SwagSuccessRes(
-  summary: string,
-  status: number = HttpStatus.OK,
-  description: string = 'Successful response',
-  statusCode: number = HttpStatus.OK,
-  message: string = 'success',
-  data: object = {},
-) {
-  return applyDecorators(
-    ApiOperation({ summary }),
-    ApiResponse({
-      status,
-      description,
-      schema: {
-        example: {
-          statusCode,
-          message,
-          data,
-        },
-      },
-    }),
-  );
-}
 
-function SwagFailedRes(
-  summary: string,
-  status: number = HttpStatus.BAD_REQUEST,
-  description: string = 'Failed response',
-  statusCode: number = HttpStatus.BAD_REQUEST,
-  errorMessage: string = 'Some error occurred',
-) {
-  return applyDecorators(
-    ApiOperation({ summary }),
-    ApiResponse({
-      status,
-      description,
-      schema: {
-        example: {
-          statusCode,
-          error: {
-            message: errorMessage,
-          },
-        },
-      },
-    }),
-  );
-}
-
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('payment')
 export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   // Paymentni Ruchnoy create qilish
   @Post()
-  @ApiBody({ type: CreatePaymentDto })
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Payment yaratish',
     201,
     'Payment muvaffaqiyatli yaratildi',
     201,
     'success',
-    { id: 1, amount: 200, status: false },
+    paymentData,
   )
-  @SwagFailedRes(
-    'Payment yaratish - xato',
-    400,
-    'Payment yaratishda xatolik',
-    400,
-    'Invalid data',
-  )
+  @SwagFailedRes(400, 'Payment yaratishda xatolik', 400, 'Invalid input data')
+  @ApiBody({ type: CreatePaymentDto })
   create(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentService.createPayment(createPaymentDto);
   }
 
   @Get()
+  @Roles(UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
-    'Barcha Paymentlarni olish',
+    'Barcha paymentlarni olish',
     200,
-    'Paymentlar royxati',
+    'Paymentlar muvaffaqiyatli olindi',
     200,
     'success',
-    [{ id: 1, amount: 200, status: false }],
+    [paymentData],
   )
-  @SwagFailedRes(
-    'Paymentlarni olish - xato',
-    400,
-    'Sorovda xato',
-    400,
-    'Invalid request',
-  )
+  @SwagFailedRes(400, 'Paymentlarni olishda xatolik')
   findAll() {
     return this.paymentService.findAllPayments();
   }
 
   @Get(':id')
-  @ApiParam({ name: 'id', description: 'Payment ID' })
+  @Roles( UserRole.SUPER_ADMIN, UserRole.ADMIN, 'ID')  // customer ozinikini kora olsin
+  // @ApiParam({ name: 'id', description: 'Payment ID' })
   @SwagSuccessRes(
-    'Bitta Paymentni olish',
+    'Bitta paymentni olish',
     200,
     'Payment topildi',
     200,
     'success',
-    { id: 1, amount: 200, status: false },
+    paymentData,
   )
-  @SwagFailedRes(
-    'Bitta Paymentni olish - xato',
-    404,
-    'Payment topilmadi',
-    404,
-    'Not found',
-  )
+  @SwagFailedRes(404, 'Payment topilmadi', 404, 'Payment not found')
   findOne(@Param('id') id: string) {
     return this.paymentService.findPaymentById(id);
   }
 
   // payment_status falsedan true ga ozgartirish ruchnoy
   @Patch(':id/confirm')
-  @ApiParam({ name: 'id', description: 'Payment ID' })
+  @Roles(UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Paymentni tasdiqlash',
     200,
-    'Payment tasdiqlandi',
+    'Payment muvaffaqiyatli tasdiqlandi',
     200,
     'success',
-    { id: 1, status: true },
+    { ...paymentData, payment_status: true },
   )
-  @SwagFailedRes(
-    'Paymentni tasdiqlash - xato',
-    404,
-    'Payment topilmadi',
-    404,
-    'Not found',
-  )
+  @SwagFailedRes(404, 'Payment topilmadi', 404, 'Payment not found')
   confirm(@Param('id') id: string) {
     return this.paymentService.confirmPayment(id);
   }
 
   @Delete(':id')
-  @ApiParam({ name: 'id', description: 'Payment ID' })
+  @Roles(UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Paymentni ochirish',
     200,
-    'Payment ochirildi',
+    'Payment muvaffaqiyatli ochirildi',
     200,
     'success',
-    { id: 1, deleted: true },
+    { deleted: true },
   )
-  @SwagFailedRes(
-    'Paymentni ochirish - xato',
-    404,
-    'Payment topilmadi',
-    404,
-    'Not found',
-  )
+  @SwagFailedRes(404, 'Payment topilmadi', 404, 'Payment not found')
   remove(@Param('id') id: string) {
     return this.paymentService.remove(id);
   }

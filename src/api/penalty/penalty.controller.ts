@@ -9,83 +9,37 @@ import {
   applyDecorators,
   HttpStatus,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { PenaltyService } from './penalty.service';
 import { CreatePenaltyDto } from './dto/create-penalty.dto';
 import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
+import { AuthGuard } from 'src/common/guard/auth.guard';
+import { RolesGuard } from 'src/common/guard/roles.guard';
+import { Roles } from 'src/common/decorator/roles-decorator';
+import { UserRole } from 'src/common/enum/user-enum';
+import { SwagFailedRes, SwagSuccessRes } from 'src/common/decorator/swaggerSuccesRes-decorator';
+import { penaltyData } from 'src/common/document';
 
-// === Swagger dekoratorlari shu faylda ===
-function SwagSuccessRes(
-  summary: string,
-  status: number = HttpStatus.OK,
-  description: string = 'Successful response',
-  statusCode: number = HttpStatus.OK,
-  message: string = 'success',
-  data: object = {},
-) {
-  return applyDecorators(
-    ApiOperation({ summary }),
-    ApiResponse({
-      status,
-      description,
-      schema: {
-        example: {
-          statusCode,
-          message,
-          data,
-        },
-      },
-    }),
-  );
-}
 
-function SwagFailedRes(
-  summary: string,
-  status: number = HttpStatus.BAD_REQUEST,
-  description: string = 'Failed response',
-  statusCode: number = HttpStatus.BAD_REQUEST,
-  errorMessage: string = 'Some error occurred',
-) {
-  return applyDecorators(
-    ApiOperation({ summary }),
-    ApiResponse({
-      status,
-      description,
-      schema: {
-        example: {
-          statusCode,
-          error: {
-            message: errorMessage,
-          },
-        },
-      },
-    }),
-  );
-}
-
+@UseGuards(AuthGuard, RolesGuard)
 @Controller('penalty')
 export class PenaltyController {
-  constructor(private readonly penaltyService: PenaltyService) {}
+  constructor(private readonly penaltyService: PenaltyService) { }
 
   ///
   @Post()
-  @ApiBody({ type: CreatePenaltyDto })
+  @Roles(UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Penalty yaratish',
     201,
     'Penalty muvaffaqiyatli yaratildi',
     201,
     'success',
-    { id: 1, orderId: 10, amount: 50, paid: false },
+    penaltyData,
   )
-  @SwagFailedRes(
-    'Penalty yaratish - xato',
-    400,
-    'Penalty yaratishda xatolik',
-    400,
-    'Invalid data',
-  )
+  @SwagFailedRes(400, 'Penalty yaratib bolmadi', 400, 'Invalid data')
   create(@Body() createPenaltyDto: CreatePenaltyDto) {
     return this.penaltyService.createPenaltyForOrder(createPenaltyDto);
   }
@@ -97,93 +51,75 @@ export class PenaltyController {
     'Penaltylar royxati',
     200,
     'success',
-    [{ id: 1, orderId: 10, amount: 50, paid: false }],
+    [penaltyData],
   )
-  @SwagFailedRes(
-    'Penaltylarni olish - xato',
-    400,
-    'Sorovda xato',
-    400,
-    'Invalid request',
-  )
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   findAll() {
     return this.penaltyService.findAll();
   }
 
   // Pagination Penalty
   @Get('paginated')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
-    'Penaltylar paginated',
+    'Penaltylarni pagination bilan olish',
     200,
-    'Penaltylar paginated ro‘yxati',
+    'Penaltylar pagination bilan qaytarildi',
     200,
     'success',
-    { data: [], totalElements: 0, totalPages: 0, pageSize: 0 },
+    {
+      items: [penaltyData],
+      total: 1,
+      page: 1,
+      limit: 10,
+    },
   )
   async findAllPaginated(@Query() query: QueryPaginationDto) {
     return this.penaltyService.findAllPaginated(query);
   }
 
   @Get(':id')
-  @ApiParam({ name: 'id', description: 'Penalty ID' })
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @SwagSuccessRes(
-    'Bitta Penaltyni olish',
+    'Penaltyni ID orqali olish',
     200,
     'Penalty topildi',
     200,
     'success',
-    { id: 1, orderId: 10, amount: 50, paid: false },
+    penaltyData,
   )
-  @SwagFailedRes(
-    'Bitta Penaltyni olish - xato',
-    404,
-    'Penalty topilmadi',
-    404,
-    'Not found',
-  )
+  @SwagFailedRes(404, 'Penalty topilmadi', 404, 'Penalty not found')
   findOne(@Param('id') id: string) {
     return this.penaltyService.findOneById(id);
   }
 
   ///
   @Patch(':id/pay')
-  @ApiParam({ name: 'id', description: 'Penalty ID' })
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Penaltyni tolangan deb belgilash',
     200,
-    'Penalty tolandi',
+    'Penalty muvaffaqiyatli tolangan deb belgilandi',
     200,
     'success',
-    { id: 1, paid: true },
+    { ...penaltyData, is_paid_penalty: true },
   )
-  @SwagFailedRes(
-    'Penaltyni tolangan deb belgilash - xato',
-    404,
-    'Penalty topilmadi',
-    404,
-    'Not found',
-  )
+  @SwagFailedRes(404, 'Penalty topilmadi', 404, 'Penalty not found')
   markAsPaid(@Param('id') id: string) {
     return this.penaltyService.markAsPaid(id);
   }
 
   @Delete(':id')
-  @ApiParam({ name: 'id', description: 'Penalty ID' })
+  @Roles(UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Penaltyni ochirish',
     200,
-    'Penalty ochirildi',
+    'Penalty muvaffaqiyatli ochirildi',
     200,
     'success',
-    { id: 1, deleted: true },
+    { deleted: true },
   )
-  @SwagFailedRes(
-    'Penaltyni ochirish - xato',
-    404,
-    'Penalty topilmadi',
-    404,
-    'Not found',
-  )
+  @SwagFailedRes(404, 'Penalty topilmadi', 404, 'Penalty not found')
   remove(@Param('id') id: string) {
     return this.penaltyService.remove(id);
   }

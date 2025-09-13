@@ -62,22 +62,16 @@ export class PenaltyService extends BaseService<
     const penaltyAmount: number = daysLate * Number(createPenaltyDto.penalty_day_price);
 
 
-    if (!order.penalty) {
-      //  Yangi penalty yaratish
-      const penalty = this.penaltyRepo.create({
-        penalty_day_price: createPenaltyDto.penalty_day_price,
-        penalty_amount: penaltyAmount,
-        is_paid_penalty: false,
-        order,
-      });
+    //  Yangi penalty yaratish
+    const penalty = this.penaltyRepo.create({
+      penalty_day_price: createPenaltyDto.penalty_day_price,
+      penalty_amount: penaltyAmount,
+      is_paid_penalty: false,
+      order,
+    });
 
-      return await this.penaltyRepo.save(penalty); // Saqlash
-    } else {
-      // Mavjud penaltyni yangilash
-      console.log(order)
-      order.penalty.penalty_amount = penaltyAmount;
-      return await this.penaltyRepo.save(order.penalty);
-    }
+    return await this.penaltyRepo.save(penalty); // Saqlash
+
   }
 
   // Mavjud penaltyni yangilash

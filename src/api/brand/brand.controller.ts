@@ -27,7 +27,6 @@ export class BrandController {
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-
     return this.brandService.findOneById(id);
   }
 

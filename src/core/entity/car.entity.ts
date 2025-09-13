@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Brand } from './brand.entity';
 import { District } from './district.entity';
 import { Order } from './order.entity';
@@ -47,5 +55,4 @@ export class Car {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
-
 }

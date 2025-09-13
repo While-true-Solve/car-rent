@@ -22,12 +22,12 @@ export class AdopdetCarController {
 
   @Get()
   findAll() {
-    return this.adopdetCarService.findAllAdopdet();
+    return this.adopdetCarService.findAll({relations:{car:true, customer:true}});
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.adopdetCarService.findOne(id);
+    return this.adopdetCarService.findOneById(id);
   }
 
   @Patch(':id')
@@ -40,6 +40,6 @@ export class AdopdetCarController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.adopdetCarService.removeAdopdet_car(id);
+    return this.adopdetCarService.remove(id);
   }
 }

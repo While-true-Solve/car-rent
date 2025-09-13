@@ -7,7 +7,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Brand } from 'src/core/';
 
 @Injectable()
-
 export class BrandService extends BaseService<
   CreateBrandDto,
   UpdateBrandDto,

@@ -23,13 +23,13 @@ export class ClassCarController {
   @Get()
   findAll() {
     return this.classCarService.findAll({
-      relations: ['classEntity', 'car']
+      relations: ['classEntity', 'car'],
     });
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.classCarService.findOne(id);
+    return this.classCarService.findOneById(id);
   }
 
   @Patch(':id')
@@ -42,6 +42,6 @@ export class ClassCarController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.classCarService.removeClassCar(id);
+    return this.classCarService.remove(id);
   }
 }

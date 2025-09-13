@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Class } from './class.entity';
 import { Car } from './car.entity';
 
@@ -18,5 +24,4 @@ export class ClassCars {
 
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
-
 }

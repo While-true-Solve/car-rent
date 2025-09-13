@@ -1,4 +1,4 @@
-import { Repository } from "typeorm";
-import { Car } from "../";
+import { Repository } from 'typeorm';
+import { Car } from '../';
 
-export type carRepository = Repository<Car>
+export type carRepository = Repository<Car>;

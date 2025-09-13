@@ -1,4 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+} from 'typeorm';
 import { Region } from './region.entity';
 import { Car } from './car.entity';
 
@@ -10,9 +16,11 @@ export class District {
   @Column()
   name: string;
 
-  @ManyToOne(() => Region, (region) => region.districts, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Region, (region) => region.districts, {
+    onDelete: 'CASCADE',
+  })
   region: Region;
 
   @OneToMany(() => Car, (car) => car.district)
-  cars: Car[]
+  cars: Car[];
 }

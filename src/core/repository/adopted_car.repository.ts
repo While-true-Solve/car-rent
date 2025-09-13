@@ -1,4 +1,4 @@
-import { Repository } from "typeorm";
-import { AdoptedCar } from "../entity/adopdet-car.entity";
+import { Repository } from 'typeorm';
+import { AdoptedCar } from '../entity/adopdet-car.entity';
 
-export type adopted_carRepository = Repository<AdoptedCar>
+export type adopted_carRepository = Repository<AdoptedCar>;

@@ -295,7 +295,26 @@ export class OrderService extends BaseService<
     };
   }
 
-  // Tugagan orderlarni tekshirib penalty yaratish (cron job yoki service orqali chaqiriladi)
+  // // Tugagan orderlarni tekshirib penalty yaratish (cron job yoki service orqali chaqiriladi)
+  // async checkAndCreatePenaltyForLateOrders() {
+  //   const now = new Date();
+  //   const orders = await this.orderRepo.find({
+  //     where: { finish_time: MoreThan(new Date(0)), status: OrderStatus.ACTIVE },
+  //     relations: ['penalty'],
+  //   });
+
+  //   for (const order of orders) {
+  //     if (now > order.finish_time && !order.penalty) {
+  //       // Penalty DTO tayyorlash
+  //       const penaltyDto = {
+  //         order_id: order.id,
+  //         penalty_day_price: 50, // global yoki order.price asosida
+  //       };
+  //       await this.penaltyService.createPenaltyForOrder(penaltyDto);
+  //     }
+  //   }
+  // }
+
   async checkAndCreatePenaltyForLateOrders() {
     const now = new Date();
     const orders = await this.orderRepo.find({
@@ -304,16 +323,23 @@ export class OrderService extends BaseService<
     });
 
     for (const order of orders) {
-      if (now > order.finish_time && !order.penalty) {
-        // Penalty DTO tayyorlash
+      if (now > order.finish_time) {
+        // Birinchi penalty yozish
         const penaltyDto = {
           order_id: order.id,
-          penalty_day_price: 50, // global yoki order.price asosida
+          penalty_day_price: 100,
         };
         await this.penaltyService.createPenaltyForOrder(penaltyDto);
+      } else {
+        // Mavjud penaltyni yangilash
+        await this.penaltyService.updatePenaltyForOrder(order.id);
       }
     }
+
+
   }
+
+
 
   // Rolback orqali Tranzaksiya Controllerda buni chaqirmabman istasangiz buni tanlang
   async createOrderWithPaymentRolback(createOrderDto: CreateOrderDto) {

@@ -32,17 +32,17 @@ export class PenaltyService extends BaseService<
     const order = await this.orderRepo.findOne({
       where: { id: createPenaltyDto.order_id },
       relations: ['penalty'], // penalty bor-yo‘qligini ham olish
-    });
+    }) as Order;
     if (!order) {
       throw new NotFoundException(
         `Order ${createPenaltyDto.order_id} topilmadi`,
       );
     }
-    if (order.penalty) {
-      throw new BadRequestException(
-        `Order ${createPenaltyDto.order_id} uchun penalty allaqachon mavjud`,
-      );
-    }
+    // if (order.penalty) {
+    //   throw new BadRequestException(
+    //     `Order ${createPenaltyDto.order_id} uchun penalty allaqachon mavjud`,
+    //   );
+    // }
 
     // 2. Hozirgi vaqt va order.finish_time ni solishtirish
     const now = new Date();
@@ -59,17 +59,58 @@ export class PenaltyService extends BaseService<
     );
 
     // 5. Penalty summasini hisoblash
-    const penaltyAmount = daysLate * Number(createPenaltyDto.penalty_day_price);
+    const penaltyAmount: number = daysLate * Number(createPenaltyDto.penalty_day_price);
 
-    // 6. Yangi penalty obyektini yaratish
-    const penalty = this.penaltyRepo.create({
-      penalty_day_price: createPenaltyDto.penalty_day_price,
-      penalty_amount: penaltyAmount,
-      is_paid_penalty: false,
-      order: order,
+
+    if (!order.penalty) {
+      //  Yangi penalty yaratish
+      const penalty = this.penaltyRepo.create({
+        penalty_day_price: createPenaltyDto.penalty_day_price,
+        penalty_amount: penaltyAmount,
+        is_paid_penalty: false,
+        order,
+      });
+
+      return await this.penaltyRepo.save(penalty); // Saqlash
+    } else {
+      // Mavjud penaltyni yangilash
+      console.log(order)
+      order.penalty.penalty_amount = penaltyAmount;
+      return await this.penaltyRepo.save(order.penalty);
+    }
+  }
+
+  // Mavjud penaltyni yangilash
+  async updatePenaltyForOrder(orderId: string) {
+    const order = await this.orderRepo.findOne({
+      where: { id: orderId },
+      relations: ['penalty'],
     });
-    // 7. Saqlash
-    return await this.penaltyRepo.save(penalty);
+
+    if (!order) {
+      throw new NotFoundException(`Order ${orderId} topilmadi`);
+    }
+    if (!order.penalty) {
+      throw new BadRequestException(`Order ${orderId} uchun penalty mavjud emas`);
+    }
+
+    // Agar qaytarilgan bo‘lsa — yangilash kerak emas
+    const now = new Date();
+    const finishTime = new Date(order.finish_time);
+    if (now <= finishTime) {
+      return order.penalty;
+    }
+
+    // Necha kun kechikkanini hisoblash
+    const daysLate = Math.ceil(
+      (now.getTime() - finishTime.getTime()) / (1000 * 60 * 60 * 24),
+    );
+
+    // Yangilangan summa
+    order.penalty.penalty_amount =
+      daysLate * Number(order.penalty.penalty_day_price);
+
+    return await this.penaltyRepo.save(order.penalty);
   }
 
   // Penaltylar ni paginationda chqarish

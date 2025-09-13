@@ -49,6 +49,8 @@ export class Order {
   @OneToOne(() => Payment, (payment) => payment.order)
   payment: Payment;
 
-  @OneToOne(() => Penalty, (penalty) => penalty.order)
+  // order.entity.ts
+  @OneToOne(() => Penalty, (penalty) => penalty.order, { cascade: true })
   penalty: Penalty;
+
 }

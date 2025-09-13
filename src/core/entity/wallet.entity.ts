@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Customer } from './customer.entity';
 
 @Entity('wallet')
@@ -14,4 +14,10 @@ export class Wallet {
 
   @ManyToOne(() => Customer, (customer) => customer.wallets)
   customer: Customer;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
 }

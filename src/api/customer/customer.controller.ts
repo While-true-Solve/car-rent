@@ -8,6 +8,7 @@ import {
   Delete,
   Res,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
@@ -19,6 +20,9 @@ import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/decorator/roles-decorator';
 import { UserRole } from 'src/common/enum/user-enum';
+import { ApiBearerAuth } from '@nestjs/swagger';
+import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
+import { ILike } from 'typeorm';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('customer')
@@ -30,8 +34,28 @@ export class CustomerController {
   create(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customerService.createCustomer(createCustomerDto);
   }
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+
   @Get()
+  @ApiBearerAuth()
+  findAllWithPagination(@Query() queryDto: QueryPaginationDto) {
+    const { query, page, limit } = queryDto;
+    const where = query
+      ? { email: ILike(`%${query}%`), role: UserRole.ADMIN }
+      : { role: UserRole.ADMIN};
+    return this.customerService.findAllWithPagination({
+      where,
+      order: { created_at: 'DESC' },
+      select: {
+        id: true,
+        is_active: true,
+      },
+      skip: page,
+      take: limit,
+    });
+  }
+
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Get('all/admins')
   findAll() {
     return this.customerService.findAll();
   }

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Order } from './order.entity';
 import { Wallet } from './wallet.entity';
 import { Comments } from './comment.entity';
@@ -29,7 +29,7 @@ export class Customer {
   is_active: boolean;
 
   @Column({ type: "enum" , enum:UserRole, default:UserRole.USER})
-    role:UserRole.USER
+    role:UserRole
 
   @OneToMany(() => Order, (order) => order.customer)
   orders: Order[];
@@ -42,4 +42,10 @@ export class Customer {
 
   @OneToMany(() => AdoptedCar, (ac) => ac.customer)
   adoptedCars: AdoptedCar[];
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
 }

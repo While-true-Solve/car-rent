@@ -1,12 +1,12 @@
-import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsOptional, IsString } from "class-validator";
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class QueryPaginationDto {
     @ApiPropertyOptional({
         type: 'string',
         example: 'Eshmat',
-        description: 'Query for each'
+        description: 'Query for search',
     })
     @IsString()
     @IsOptional()
@@ -15,20 +15,20 @@ export class QueryPaginationDto {
     @ApiPropertyOptional({
         type: 'string',
         example: '1',
-        description: 'Page'
+        description: 'page',
     })
+    @IsNumber()
     @Type(() => Number)
-    @IsString()
     @IsOptional()
-    page?: string;
+    page?: number;
 
     @ApiPropertyOptional({
         type: 'string',
         example: '10',
-        description: 'Limit'
+        description: 'limit',
     })
+    @IsNumber()
     @Type(() => Number)
-    @IsString()
     @IsOptional()
-    limit?: string;
+    limit?: number;
 }

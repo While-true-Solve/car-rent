@@ -3,9 +3,9 @@ import { IsNotEmpty, IsNumber, IsNumberString, IsString, IsUUID, Length, Matches
 
 export class CreateWalletDto {
     @ApiProperty({
-        type:'string',
+        type: 'string',
         description: 'id owner card',
-        example:'fjhduiuhfnjfl-jfhasjnfdkla'
+        example: 'fjhduiuhfnjfl-jfhasjnfdkla'
     })
     @IsUUID()
     @IsNotEmpty()
@@ -13,7 +13,7 @@ export class CreateWalletDto {
 
     @ApiProperty({
         type: 'string',
-        description:'card number'
+        description: 'card number'
     })
     @IsNumberString({}, { message: 'Karta raqami faqat raqamlardan iborat bo\'lishi kerak' })
     @Length(16, 16, { message: 'Karta raqami 16 ta raqamdan iborat bo\'lishi kerak' })

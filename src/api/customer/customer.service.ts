@@ -13,6 +13,7 @@ import { Response } from 'express';
 import type { CustomerRepository } from 'src/core';
 import { MoreThan } from 'typeorm';
 import { SignOutCustomerDto } from './dto/signout-customer.dto';
+import { CreateOtpDto } from './dto/create-otp.dto';
 
 @Injectable()
 export class CustomerService extends BaseService<
@@ -26,6 +27,11 @@ export class CustomerService extends BaseService<
     private readonly tokenService: TokenService,
   ) {
     super(customerRepo)
+  }
+
+  async sendOTP(createOtpDto: CreateOtpDto) {
+    const { email } = createOtpDto;
+    
   }
 
   async createCustomer(createCustomerDto: CreateCustomerDto) {

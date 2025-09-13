@@ -8,6 +8,7 @@ import type { CustomerRepository } from 'src/core/repository/customer.repository
 import type { CommentRepository } from 'src/core/repository/comment.repository';
 import type { CarRepository } from 'src/core/repository/car.repository';
 import { successRes } from 'src/infrastructure/response/successRes';
+import { ISuccessRes } from 'src/common/interface';
 
 @Injectable()
 export class CommentService extends BaseService<CreateCommentDto, UpdateCommentDto, Comment> {
@@ -19,7 +20,7 @@ export class CommentService extends BaseService<CreateCommentDto, UpdateCommentD
     super(commentRepo)
   }
 
-  async createComment(createCommentDto: CreateCommentDto) {
+  async createComment(createCommentDto: CreateCommentDto): Promise<ISuccessRes> {
     const { car_id, customer_id, impression } = createCommentDto;
 
     const existsCar = await this.carRepo.findOne({ where: { id: car_id } });
@@ -43,19 +44,36 @@ export class CommentService extends BaseService<CreateCommentDto, UpdateCommentD
     return successRes(newComment);
   }
 
-  findAllComment() {
-    return `This action returns all comment`;
-  }
+  async updateComment(id: string, updateCommentDto: UpdateCommentDto): Promise<ISuccessRes> {
+    const { car_id, customer_id, impression } = updateCommentDto;
 
-  findOneComment(id: number) {
-    return `This action returns a #${id} comment`;
-  }
+    const existingComment = await this.commentRepo.findOne({ where: { id } });
+    if (!existingComment) {
+      throw new NotFoundException('No such comment found!!!'); // Bunday comment topilmadi!!!
+    }
 
-  updateComment(id: string, updateCommentDto: UpdateCommentDto) {
-    return `This action updates a #${id} comment`;
-  }
+    if (car_id) {
+      const existsCar = await this.carRepo.findOne({ where: { id: car_id } });
+      if (!existsCar) {
+        throw new NotFoundException('No such car found!!!'); //Bunday mashina topilmadi!!!
+      }
+      existingComment.car = existsCar;
+    }
 
-  removeComment(id: string) {
-    return `This action removes a #${id} comment`;
+    if (customer_id) {
+      const existsCustomer = await this.customerRepo.findOne({ where: { id: customer_id } });
+      if (!existsCustomer) {
+        throw new NotFoundException('No such customer found!!!'); //Bunday mijoz topilmadi!!!
+      }
+      existingComment.customer = existsCustomer;
+    }
+
+    if (impression != undefined) {
+      existingComment.impression = impression;
+    }
+
+    await this.commentRepo.save(existingComment);
+
+    return successRes(existingComment);
   }
 }

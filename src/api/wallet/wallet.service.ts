@@ -8,6 +8,7 @@ import { Customer, Wallet } from 'src/core';
 import { BaseService } from 'src/infrastructure/base/base.servise';
 import type { CustomerRepository } from 'src/core/repository/customer.repository';
 import type { WalletRepository } from 'src/core/repository/wallet.repository';
+import { ISuccessRes } from 'src/common/interface';
 
 @Injectable()
 export class WalletService extends BaseService<CreateWalletDto, UpdateWalletDto, Wallet> {
@@ -20,7 +21,7 @@ export class WalletService extends BaseService<CreateWalletDto, UpdateWalletDto,
 
   // wallet create bo'ladigan vaqt customer_id kiritadi shuni tekshirish kerak .
   //  customer_id mavjudmi? va shu customer_id surov junatdigan odamni idisiga tengmi
-  async createeWallet(createWalletDto: CreateWalletDto, user: any) {
+  async createeWallet(createWalletDto: CreateWalletDto, user: any): Promise<ISuccessRes> {
     const { customer_id, card } = createWalletDto;
     const customer = await this.customerRepo.findOne({ where: { id: customer_id } });
     if (!customer) {
@@ -52,7 +53,7 @@ export class WalletService extends BaseService<CreateWalletDto, UpdateWalletDto,
   }
 
 
-  async updateWallet(id: string, updateWalletDto: UpdateWalletDto, user: any) {
+  async updateWallet(id: string, updateWalletDto: UpdateWalletDto, user: any): Promise<ISuccessRes> {
     const wallet = await this.walletRepo.findOne({
       where: { id },
       relations: ['customer']

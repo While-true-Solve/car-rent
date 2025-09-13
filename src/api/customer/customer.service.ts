@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CryptoService } from 'src/infrastructure/lib/crypto/brypt';
 import { TokenService } from 'src/infrastructure/lib/token/Token';
 import { SignInCustomerDto } from './dto/signin-customer.dto';
-import { IPayload } from 'src/common/interface';
+import { IPayload, ISuccessRes } from 'src/common/interface';
 import { successRes } from 'src/infrastructure/response/successRes';
 import { Response } from 'express';
 import type { CustomerRepository } from 'src/core';
@@ -34,7 +34,7 @@ export class CustomerService extends BaseService<
     
   }
 
-  async createCustomer(createCustomerDto: CreateCustomerDto) {
+  async createCustomer(createCustomerDto: CreateCustomerDto): Promise<ISuccessRes> {
     const { phone_number, email, password, ...rest } = createCustomerDto;
     const exists_number = await this.customerRepo.findOne({ where: { phone_number } });
     if (exists_number) throw new HttpException('Phone number alread exists', 400);
@@ -52,7 +52,7 @@ export class CustomerService extends BaseService<
     } as any);
   }
 
-  async signInCustomer(signInCustomerDto: SignInCustomerDto, res: Response) {
+  async signInCustomer(signInCustomerDto: SignInCustomerDto, res: Response): Promise<ISuccessRes> {
     const { email, password } = signInCustomerDto;
     const customer = await this.customerRepo.findOne({ where: { email } });
     const isMatchPassword = await this.crypto.decrypt(
@@ -74,7 +74,7 @@ export class CustomerService extends BaseService<
     return successRes({ token: accessToken });
   }
 
-  async signOutCustomer(signOutDto: SignOutCustomerDto, res: Response) {
+  async signOutCustomer(signOutDto: SignOutCustomerDto, res: Response): Promise<ISuccessRes> {
     const { id } = signOutDto;
     const customer = await this.customerRepo.findOne({ where: { id } });
     if (!customer) {
@@ -85,7 +85,7 @@ export class CustomerService extends BaseService<
     return successRes({});
   }
 
-  async updateCustomer(id: string, updateCustomerDto: UpdateCustomerDto) {
+  async updateCustomer(id: string, updateCustomerDto: UpdateCustomerDto): Promise<ISuccessRes> {
     const { email, phone_number, password, ...rest } = updateCustomerDto;
 
     const customer = await this.customerRepo.findOne({ where: { id } });
@@ -113,7 +113,7 @@ export class CustomerService extends BaseService<
     return successRes(customer);
   }
 
-  async removeCustomer(id: string) {
+  async removeCustomer(id: string): Promise<ISuccessRes> {
     // customerni o'chirishdan oldin , mashina olganini(order dan finish_time vaqti hozirgi vaqtdan katta bolsa ochirmaslik kerak) tekshirish kerak mashina arendaga olgan bolsa o'chirish mumkin emas
     const customer = await this.customerRepo.findOne({ where: { id } });
     if (!customer) {

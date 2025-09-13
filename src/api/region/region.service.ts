@@ -1,26 +1,34 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateRegionDto } from './dto/create-region.dto';
 import { UpdateRegionDto } from './dto/update-region.dto';
+import { BaseService } from 'src/infrastructure/base/base.servise';
+import { Region } from 'src/core';
+import { InjectRepository } from '@nestjs/typeorm';
+import type { RegionRepository } from 'src/core';
+import { ISuccessRes } from 'src/common/interface';
 
 @Injectable()
-export class RegionService {
-  create(createRegionDto: CreateRegionDto) {
-    return 'This action adds a new region';
+export class RegionService extends BaseService<
+  CreateRegionDto,
+  UpdateRegionDto,
+  Region
+> {
+  constructor(
+    @InjectRepository(Region) private readonly regionRepo: RegionRepository,
+  ) {
+    super(regionRepo);
+  }
+  async create(dto: CreateRegionDto): Promise<ISuccessRes> {
+    const exists = await this.regionRepo.findOne({ where: { name: dto.name } });
+    if (exists) throw new ConflictException('bu region mavjud');
+
+    return super.create(dto);
   }
 
-  findAll() {
-    return `This action returns all region`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} region`;
-  }
-
-  update(id: number, updateRegionDto: UpdateRegionDto) {
-    return `This action updates a #${id} region`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} region`;
+  async update(id: string, dto: UpdateRegionDto): Promise<ISuccessRes> {
+    const exists = await this.regionRepo.findOne({ where: { name: dto.name } });
+    if (exists && exists.id !== id)
+      throw new ConflictException('bu region mavjud');
+    return super.update(id, dto);
   }
 }

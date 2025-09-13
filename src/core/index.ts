@@ -16,6 +16,7 @@ export * from './entity/penalty.entity';
 
 // Repositories
 export * from './repository/admin.repository';
+
 export * from './repository/car.repository';
 export * from './repository/brand.rpository';
 export * from './repository/district.repository';
@@ -23,3 +24,6 @@ export * from './repository/adopted_car.repository';
 export * from './repository/customer.repository';
 export * from './repository/order.repository'
 export * from './repository/class.repository'
+export * from './repository/brand.rpository';
+export * from './repository/class.repository';
+export * from './repository/region.repository';

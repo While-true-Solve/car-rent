@@ -1,4 +1,5 @@
-import { Repository } from 'typeorm';
-import { Class } from '../';
 
-export type ClassRepository = Repository<Class>;
+import { Repository } from "typeorm";
+import { Class } from "../";
+
+export type ClassRepository = Repository<Class>

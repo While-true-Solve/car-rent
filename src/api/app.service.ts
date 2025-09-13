@@ -31,8 +31,8 @@ export class Aplication {
 
     //SWAGGER
     const config = new DocumentBuilder()
-      .setTitle('Dinmuhammad courses')
-      .setDescription('The "ONLINE COURSES"  API description')
+      .setTitle('DinMuhammad')
+      .setDescription('The "CAR RENT"  API description')
       .setVersion('1.0')
       .addTag('DinMuhammad')
       .addBearerAuth({

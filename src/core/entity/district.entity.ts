@@ -3,7 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
-  OneToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Region } from './region.entity';
 import { Car } from './car.entity';
@@ -16,11 +17,15 @@ export class District {
   @Column()
   name: string;
 
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
+
+  
   @ManyToOne(() => Region, (region) => region.districts, {
     onDelete: 'CASCADE',
   })
-  region: Region;
-
-  @OneToMany(() => Car, (car) => car.district)
-  cars: Car[];
+  regionId: Region;
 }

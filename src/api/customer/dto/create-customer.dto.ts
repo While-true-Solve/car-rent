@@ -35,7 +35,7 @@ export class CreateCustomerDto {
   @ApiProperty({ type: 'string', example: 'Toshkent, Chilonzor 9-kvartal' })
   @IsString()
   @IsNotEmpty()
-  address: string;
+  adress: string;
 
   @ApiProperty({ type: 'boolean', example: true })
   @IsBoolean()

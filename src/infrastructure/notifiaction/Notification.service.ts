@@ -10,8 +10,8 @@ export class NotificationService {
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // TLS ishlatiladi
+      port: 465,
+      secure: true, // TLS ishlatiladi
       auth: {
         user: config.Email.user, // .env dan olish
         pass: config.Email.pass,
@@ -20,13 +20,15 @@ export class NotificationService {
   }
 
   async sendOTP(email: string, otp: string) {
-    await this.transporter.sendMail({
-      from: `"My App" <${process.env.EMAIL_USER}>`,
+    // console.log(email, otp, config.Email.user, config.Email.pass)
+    const info = await this.transporter.sendMail({
+      from: `"My App" <${config.Email.user}>`,
       to: email,
-      subject:
-        'registration successful . Please check your email for OTP and proceed to login',
-      text: ` login link: http://localhost:${config.PORT}/api/v1/customer/login`,
+      subject: 'Registration successful. Please verify your OTP',
+      text: `Your OTP code is: ${otp}\nLogin link: http://localhost:${config.PORT}/api/v1/customer/login`,
     });
+    console.log(info);
+    
   }
 
   async sendDeadlineSoon(customer: Customer, order: Order) {

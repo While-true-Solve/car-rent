@@ -9,10 +9,12 @@ import { OrderModule } from '../order/order.module';
 import { WalletModule } from '../wallet/wallet.module';
 import { CommentModule } from '../comment/comment.module';
 import { AdopdetCarModule } from '../adopdet-car/adopdet-car.module';
+import { NotificationModule } from 'src/infrastructure/notifiaction/notification.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Customer]),
+    TypeOrmModule.forFeature([Customer],),
+    NotificationModule,
     OrderModule,
     WalletModule,
     CommentModule,

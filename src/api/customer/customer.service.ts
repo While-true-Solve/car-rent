@@ -17,6 +17,7 @@ import type { CustomerRepository } from 'src/core';
 import { ForgetPassDto } from './dto/forget-pass.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { ConfirmPassDto } from './dto/confirm-pass.dto';
+import { NotificationService } from 'src/infrastructure/notifiaction/Notification.service';
 
 @Injectable()
 export class CustomerService extends BaseService<
@@ -29,6 +30,7 @@ export class CustomerService extends BaseService<
     private readonly customerRepo: CustomerRepository,
     private readonly crypto: CryptoService,
     private readonly tokenService: TokenService,
+    private readonly notificationService: NotificationService
   ) {
     super(customerRepo);
   }
@@ -48,7 +50,7 @@ export class CustomerService extends BaseService<
     
     // 6 honali OTP generatsiya qilish
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log(email);
+    // console.log(email);
 
     const createCustomer =  this.customerRepo.create({
       ...rest,
@@ -63,7 +65,7 @@ export class CustomerService extends BaseService<
     console.log(newCustomer);
     
     //Email ga OTP yuborish
-    
+    this.notificationService.sendOTP(email, otp)
 
     return successRes({
       message:
@@ -113,6 +115,7 @@ export class CustomerService extends BaseService<
 
     // OTP ni emailga yuborish (masalan nodemailer bilan)
     
+
     return successRes({
       message: 'OTP sent to your email.',
     });
@@ -177,24 +180,26 @@ export class CustomerService extends BaseService<
       throw new BadRequestException('username or password incorrect');
     }
 
+    
     const isMatchPassword = await this.crypto.decrypt(
       password,
-      customer?.password as any,
+      customer?.password,
     );
     if (!isMatchPassword) {
       throw new BadRequestException('username or password incorrect');
     }
-
+    
     const payload: IPayload = {
       id: customer.id,
       isActive: customer.is_active,
       role: customer.role,
     };
-
+    
     const accessToken = await this.tokenService.accessToken(payload);
     const refreshToken = await this.tokenService.refreshToken(payload);
-
+    
     await this.tokenService.writeCookie(res, 'userToken', refreshToken, 15);
+    console.log(successRes({ token: accessToken }));
 
     return successRes({ token: accessToken });
   }

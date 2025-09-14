@@ -6,7 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Car, Comments, Customer } from 'src/core';
 import type { CustomerRepository } from 'src/core/repository/customer.repository';
 import type { CommentRepository } from 'src/core/repository/comment.repository';
-import type { CarRepository } from 'src/core/repository/car.repository';
+import type { carRepository } from 'src/core/repository/car.repository';
 import { successRes } from 'src/infrastructure/response/successRes';
 import { ISuccessRes } from 'src/common/interface';
 
@@ -20,7 +20,7 @@ export class CommentService extends BaseService<
     @InjectRepository(Comments) private readonly commentRepo: CommentRepository,
     @InjectRepository(Customer)
     private readonly customerRepo: CustomerRepository,
-    @InjectRepository(Car) private readonly carRepo: CarRepository,
+    @InjectRepository(Car) private readonly carRepo: carRepository,
   ) {
     super(commentRepo);
   }

@@ -203,9 +203,9 @@ export class CustomerController {
     400,
     'Invalid data or session already active',
   )
-  @Roles('ID')
+  @Roles('public')
   @Post('signin')
-  signIn(@Body() signInCustomerDto: SignInCustomerDto, @Res() res: Response) {
+  signIn(@Body() signInCustomerDto: SignInCustomerDto, @Res({passthrough:true}) res: Response) {
     return this.customerService.signInCustomer(signInCustomerDto, res);
   }
 
@@ -227,7 +227,7 @@ export class CustomerController {
   @Post('signout')
   signOut(
     @Body() signOutCustomerDto: SignOutCustomerDto,
-    @Res() res: Response,
+    @Res({passthrough:true}) res: Response,
   ) {
     return this.customerService.signOutCustomer(signOutCustomerDto, res);
   }

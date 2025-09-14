@@ -14,7 +14,7 @@ const {
 
 @Injectable()
 export class TokenService {
-  constructor(private readonly jwt: JwtService) {}
+  constructor(private readonly jwt: JwtService) { }
 
   async accessToken(payload: IPayload): Promise<string> {
     return this.jwt.signAsync(payload, {

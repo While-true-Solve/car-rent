@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Region } from './region.entity';
 
 @Entity('district')
@@ -9,8 +16,15 @@ export class District {
   @Column()
   name: string;
 
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
+
+  
   @ManyToOne(() => Region, (region) => region.districts, {
     onDelete: 'CASCADE',
   })
-  region: Region;
+  regionId: Region;
 }

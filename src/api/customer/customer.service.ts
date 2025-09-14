@@ -13,10 +13,10 @@ import { Response } from 'express';
 import { MoreThan } from 'typeorm';
 import { SignOutCustomerDto } from './dto/signout-customer.dto';
 import { LoginCustomerDto } from './dto/login.customer-otp.dto';
-import { MailerService } from '@nestjs-modules/mailer';
 import type { CustomerRepository } from 'src/core';
 import { ForgetPassDto } from './dto/forget-pass.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ConfirmPassDto } from './dto/confirm-pass.dto';
 
 @Injectable()
 export class CustomerService extends BaseService<
@@ -29,7 +29,6 @@ export class CustomerService extends BaseService<
     private readonly customerRepo: CustomerRepository,
     private readonly crypto: CryptoService,
     private readonly tokenService: TokenService,
-    private readonly mailService: MailerService,
   ) {
     super(customerRepo);
   }
@@ -37,41 +36,39 @@ export class CustomerService extends BaseService<
   async registerCustomer(createCustomerDto: CreateCustomerDto,): Promise<ISuccessRes> {
 
     const { phone_number, email, password, ...rest } = createCustomerDto;
-
-    const exists_number = await this.customerRepo.findOne({
-      where: { phone_number },
-    });
-    if (exists_number)
+    
+    const exists_number = await this.customerRepo.findOne({ where: { phone_number } });
+    if (exists_number && exists_number.is_verified == true)
       throw new HttpException('Phone number alread exists', 400); // tel raqam unique ekanligini tekshirish
-
+    
     const exists_email = await this.customerRepo.findOne({ where: { email } });
-    if (exists_email) throw new HttpException('Email alread exists', 400); // email unique ekanligini tekshirish
-
+    if (exists_email && exists_email.is_verified == true) throw new HttpException('Email alread exists', 400); // email unique ekanligini tekshirish
+    
     const hashed_password = await this.crypto.encrypt(password); // parolni hashlash
-
+    
     // 6 honali OTP generatsiya qilish
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log(email);
 
-    await super.create({
+    const createCustomer =  this.customerRepo.create({
       ...rest,
       email,
       phone_number,
       password: hashed_password,
       otp,
       is_verified: false,
-    } as any);
+    } );
 
+    const newCustomer = await this.customerRepo.save(createCustomer)
+    console.log(newCustomer);
+    
     //Email ga OTP yuborish
-    await this.mailService.sendMail({
-      to: email,
-      subject: 'Your OTP Code',
-      text: otp,
-    });
+    
 
     return successRes({
       message:
         'Registration successful.Please check your email for OTP and proceed to login.',
-      login_link: 'http://localhost:1024/api/v1/customer/logen',
+      login_link: 'http://localhost:1024/api/v1/customer/login',
     });
   }
 
@@ -83,6 +80,7 @@ export class CustomerService extends BaseService<
     }
 
     if (customer.otp !== otpPass) {
+      await super.remove(customer.id)
       throw new BadRequestException('Invalid OTP. Please try again.');
     }
 
@@ -114,24 +112,64 @@ export class CustomerService extends BaseService<
     );
 
     // OTP ni emailga yuborish (masalan nodemailer bilan)
-    await this.mailService.sendMail({
-      to: email,
-      subject: 'Password Reset OTP',
-      text: `Your OTP code is ${otp}. It will expire in 5 minutes.`,
-    });
-
+    
     return successRes({
       message: 'OTP sent to your email.',
     });
   } //emailga otp jonatish
-    
-  async verifyOtp(verifyOtpDto: VerifyOtpDto) {
-    const { email, otp } = verifyOtpDto;
-    
-  } // jonatilgan otp ni tekshirib confirmning linkini berish
-  // confirmPass //password ni yangilash
 
-  async signInCustomer(signInCustomerDto: SignInCustomerDto,res: Response): Promise<ISuccessRes> {
+  async verifyOtp(verifyOtpDto: VerifyOtpDto): Promise<ISuccessRes> {
+    const { email, otp } = verifyOtpDto;
+
+    const customer = await this.customerRepo.findOne({ where: { email } });
+    if (!customer) {
+      throw new NotFoundException('Unable to find such email!');
+    }
+
+    if (!customer.otp || customer.otp !== otp) {
+      throw new BadRequestException('Invalid OTP code!');
+    }
+
+    if (customer.otp_expires < new Date()) {
+      throw new BadRequestException('OTP expired!');
+    }
+
+    await this.customerRepo.update(
+      { email },
+      {
+        otp: undefined,
+        otp_expires: undefined,
+        is_verified: true,
+      },
+    );
+
+    return successRes({
+      message: 'OTP verified successfully',
+      confirmLink: 'http://localhost:1024/api/v1/customer/verifyPass',
+    });
+  } // jonatilgan otp ni tekshirib confirmning linkini berish
+  
+  async confirmPass(confirmPassDto: ConfirmPassDto): Promise<ISuccessRes> {
+    const { email, passwordOne, passwordTwo } = confirmPassDto;
+
+    const customer = await this.customerRepo.findOne({ where: { email } });
+    if (!customer) {
+      throw new NotFoundException('Customer with this email does not exist');
+    }
+
+    if (!passwordOne || !passwordTwo || passwordOne !== passwordTwo) {
+      throw new BadRequestException('Passwords do not match or are missing');
+    }
+
+    const hashedPassword = await this.crypto.encrypt(passwordOne);
+    customer.password = hashedPassword;
+
+    await this.customerRepo.save(customer);
+
+    return successRes({ message: 'Password reset successfully' });
+  } //password ni yangilash
+
+  async signInCustomer(signInCustomerDto: SignInCustomerDto, res: Response): Promise<ISuccessRes> {
     const { email, password } = signInCustomerDto;
 
     const customer = await this.customerRepo.findOne({ where: { email } });
@@ -161,7 +199,7 @@ export class CustomerService extends BaseService<
     return successRes({ token: accessToken });
   }
 
-  async signOutCustomer(signOutDto: SignOutCustomerDto,res: Response): Promise<ISuccessRes> {
+  async signOutCustomer(signOutDto: SignOutCustomerDto, res: Response): Promise<ISuccessRes> {
     const { id } = signOutDto;
     const customer = await this.customerRepo.findOne({ where: { id } });
     if (!customer) {
@@ -172,7 +210,7 @@ export class CustomerService extends BaseService<
     return successRes({});
   }
 
-  async updateCustomer(id: string,updateCustomerDto: UpdateCustomerDto): Promise<ISuccessRes> {
+  async updateCustomer(id: string, updateCustomerDto: UpdateCustomerDto): Promise<ISuccessRes> {
     const { email, phone_number, password, ...rest } = updateCustomerDto;
 
     const customer = await this.customerRepo.findOne({ where: { id } });
@@ -194,7 +232,7 @@ export class CustomerService extends BaseService<
     if (phone_number && phone_number !== customer.phone_number) {
 
       const exists_number = await this.customerRepo.findOne({ where: { phone_number } });
-      
+
       if (exists_number) throw new BadRequestException('Phone number already exists');
       customer.phone_number = phone_number;
     }

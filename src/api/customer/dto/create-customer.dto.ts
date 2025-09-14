@@ -18,12 +18,12 @@ export class CreateCustomerDto {
   @ApiProperty({ type: 'string', example: '+998500406088' })
   @IsString()
   @IsPhoneNumber('UZ')
-  @IsNotEmpty()
+  // @IsNotEmpty()
   phone_number: string;
 
   @ApiProperty({ type: 'string', example: 'jorabekasatullayev61@gmail.com' })
   @IsEmail()
-  @IsNotEmpty()
+  // @IsNotEmpty()
   email: string;
 
   @ApiProperty({ type: 'string', example: 'Parol123_' })
@@ -41,11 +41,6 @@ export class CreateCustomerDto {
   @IsBoolean()
   @IsNotEmpty()
   is_active: boolean;
-
-  @ApiProperty({ type: 'string', required: false, example: '123456' })
-  @IsString()
-  @IsOptional()
-  otp?: string;
 
   @ApiProperty({ type: 'boolean', required: false, example: false })
   @IsBoolean()

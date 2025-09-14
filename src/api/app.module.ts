@@ -16,11 +16,13 @@ import { OrderModule } from './order/order.module';
 import { CustomerModule } from './customer/customer.module';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 const { url, sync } = config.DB;
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: url,

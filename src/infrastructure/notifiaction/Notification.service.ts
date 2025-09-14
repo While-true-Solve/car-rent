@@ -19,6 +19,16 @@ export class NotificationService {
     });
   }
 
+  async sendOTP(email: string, otp: string) {
+    await this.transporter.sendMail({
+      from: `"My App" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject:
+        'registration successful . Please check your email for OTP and proceed to login',
+      text: ` login link: http://localhost:${config.PORT}/api/v1/customer/login`,
+    });
+  }
+
   async sendDeadlineSoon(customer: Customer, order: Order) {
     await this.transporter.sendMail({
       from: `"My App" <${process.env.EMAIL_USER}>`,

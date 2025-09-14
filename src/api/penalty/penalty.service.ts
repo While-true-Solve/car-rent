@@ -7,7 +7,7 @@ import { CreatePenaltyDto } from './dto/create-penalty.dto';
 import { UpdatePenaltyDto } from './dto/update-penalty.dto';
 import { BaseService } from 'src/infrastructure/base/base.servise';
 import { Order, Penalty } from 'src/core';
-import type { OrderRepository, PenaltyRepository } from 'src/core';
+import type { orderRepository, PenaltyRepository } from 'src/core';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
@@ -21,7 +21,7 @@ export class PenaltyService extends BaseService<
 > {
   constructor(
     @InjectRepository(Penalty) private readonly penaltyRepo: PenaltyRepository,
-    @InjectRepository(Order) private readonly orderRepo: OrderRepository,
+    @InjectRepository(Order) private readonly orderRepo: orderRepository,
   ) {
     super(penaltyRepo);
   }
@@ -38,11 +38,6 @@ export class PenaltyService extends BaseService<
         `Order ${createPenaltyDto.order_id} topilmadi`,
       );
     }
-    // if (order.penalty) {
-    //   throw new BadRequestException(
-    //     `Order ${createPenaltyDto.order_id} uchun penalty allaqachon mavjud`,
-    //   );
-    // }
 
     // 2. Hozirgi vaqt va order.finish_time ni solishtirish
     const now = new Date();

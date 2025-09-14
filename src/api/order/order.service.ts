@@ -8,9 +8,9 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { BaseService } from 'src/infrastructure/base/base.servise';
 import { Car, Customer, Order, Payment, Wallet } from 'src/core';
 import type {
-  CarRepository,
+  carRepository,
   CustomerRepository,
-  OrderRepository,
+  orderRepository,
 } from '../../core/';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Between, DataSource, LessThan, MoreThan } from 'typeorm'; // DB connection va ORM’ning markaziy boshqaruvchisi.
@@ -28,10 +28,10 @@ export class OrderService extends BaseService<
   Order
 > {
   constructor(
-    @InjectRepository(Order) private readonly orderRepo: OrderRepository,
+    @InjectRepository(Order) private readonly orderRepo: orderRepository,
     @InjectRepository(Customer)
     private readonly customerRepo: CustomerRepository,
-    @InjectRepository(Car) private readonly carRepo: CarRepository,
+    @InjectRepository(Car) private readonly carRepo: carRepository,
     private dataSource: DataSource,
     private penaltyService: PenaltyService, // <-- inject qilyapmiz
     private notificationService: NotificationService,

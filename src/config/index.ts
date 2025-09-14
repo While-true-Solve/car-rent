@@ -33,6 +33,6 @@ export const config = {
   },
   Email: {
     user: String(process.env.EMAIL_USER),
-    pass: String(process.env.EMAIL_PASS)
-  }
+    pass: String(process.env.EMAIL_PASS),
+  },
 };

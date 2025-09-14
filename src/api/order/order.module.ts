@@ -10,7 +10,7 @@ import { NotificationModule } from 'src/infrastructure/notifiaction/notification
   imports: [
     TypeOrmModule.forFeature([Order, Customer, Car]),
     PenaltyModule,
-    NotificationModule
+    NotificationModule,
   ],
   controllers: [OrderController],
   providers: [OrderService],

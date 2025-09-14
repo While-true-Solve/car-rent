@@ -29,10 +29,10 @@ export class PenaltyService extends BaseService<
   // Jarimani Saqlash
   async createPenaltyForOrder(createPenaltyDto: CreatePenaltyDto) {
     // 1. Orderni topib olish
-    const order = await this.orderRepo.findOne({
+    const order = (await this.orderRepo.findOne({
       where: { id: createPenaltyDto.order_id },
       relations: ['penalty'], // penalty bor-yo‘qligini ham olish
-    }) as Order;
+    })) as Order;
     if (!order) {
       throw new NotFoundException(
         `Order ${createPenaltyDto.order_id} topilmadi`,
@@ -59,8 +59,8 @@ export class PenaltyService extends BaseService<
     );
 
     // 5. Penalty summasini hisoblash
-    const penaltyAmount: number = daysLate * Number(createPenaltyDto.penalty_day_price);
-
+    const penaltyAmount: number =
+      daysLate * Number(createPenaltyDto.penalty_day_price);
 
     //  Yangi penalty yaratish
     const penalty = this.penaltyRepo.create({
@@ -71,7 +71,6 @@ export class PenaltyService extends BaseService<
     });
 
     return await this.penaltyRepo.save(penalty); // Saqlash
-
   }
 
   // Mavjud penaltyni yangilash
@@ -85,7 +84,9 @@ export class PenaltyService extends BaseService<
       throw new NotFoundException(`Order ${orderId} topilmadi`);
     }
     if (!order.penalty) {
-      throw new BadRequestException(`Order ${orderId} uchun penalty mavjud emas`);
+      throw new BadRequestException(
+        `Order ${orderId} uchun penalty mavjud emas`,
+      );
     }
 
     // Agar qaytarilgan bo‘lsa — yangilash kerak emas

@@ -17,9 +17,11 @@ import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/decorator/roles-decorator';
 import { UserRole } from 'src/common/enum/user-enum';
-import { SwagFailedRes, SwagSuccessRes } from 'src/common/decorator/swaggerSuccesRes-decorator';
+import {
+  SwagFailedRes,
+  SwagSuccessRes,
+} from 'src/common/decorator/swaggerSuccesRes-decorator';
 import { paymentData } from 'src/common/document';
-
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('payment')
@@ -59,7 +61,7 @@ export class PaymentController {
   }
 
   @Get(':id')
-  @Roles( UserRole.SUPER_ADMIN, UserRole.ADMIN, 'ID')  // customer ozinikini kora olsin
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, 'ID') // customer ozinikini kora olsin
   // @ApiParam({ name: 'id', description: 'Payment ID' })
   @SwagSuccessRes(
     'Bitta paymentni olish',

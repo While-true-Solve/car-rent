@@ -19,14 +19,16 @@ import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/decorator/roles-decorator';
 import { UserRole } from 'src/common/enum/user-enum';
-import { SwagFailedRes, SwagSuccessRes } from 'src/common/decorator/swaggerSuccesRes-decorator';
+import {
+  SwagFailedRes,
+  SwagSuccessRes,
+} from 'src/common/decorator/swaggerSuccesRes-decorator';
 import { orderData } from 'src/common/document';
 
-
-@UseGuards(AuthGuard, RolesGuard)  //  barcha metodlarga guard ishlaydi
+@UseGuards(AuthGuard, RolesGuard) //  barcha metodlarga guard ishlaydi
 @Controller('order')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) { }
+  constructor(private readonly orderService: OrderService) {}
 
   @Post()
   @Roles(UserRole.USER) // faqat Customer order yaratadi
@@ -54,13 +56,18 @@ export class OrderController {
     'success',
     { ...orderData, payment: { id: 'payment-uuid', amount: 350.75 } },
   )
-  @SwagFailedRes(400, 'Order + Payment yaratishda xatolik', 400, 'Transaction failed')
+  @SwagFailedRes(
+    400,
+    'Order + Payment yaratishda xatolik',
+    400,
+    'Transaction failed',
+  )
   async createWithPayment(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.createOrderWithPayment(createOrderDto);
   }
 
   @Get()
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)  // faqat adminlar ko‘radi
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN) // faqat adminlar ko‘radi
   @SwagSuccessRes(
     'Barcha orderlarni olish',
     200,
@@ -130,7 +137,6 @@ export class OrderController {
     { deleted: true },
   )
   @SwagFailedRes(404, 'Order topilmadi', 404, 'Order not found')
-
   remove(@Param('id') id: string) {
     return this.orderService.remove(id);
   }

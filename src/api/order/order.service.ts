@@ -313,10 +313,7 @@ export class OrderService extends BaseService<
           await this.penaltyService.updatePenaltyForOrder(order.id);
         }
       }
-
     }
-
-
   }
 
   // Rolback orqali Tranzaksiya Controllerda buni chaqirmabman istasangiz buni tanlang

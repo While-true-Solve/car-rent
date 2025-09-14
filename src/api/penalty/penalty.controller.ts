@@ -19,14 +19,16 @@ import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/decorator/roles-decorator';
 import { UserRole } from 'src/common/enum/user-enum';
-import { SwagFailedRes, SwagSuccessRes } from 'src/common/decorator/swaggerSuccesRes-decorator';
+import {
+  SwagFailedRes,
+  SwagSuccessRes,
+} from 'src/common/decorator/swaggerSuccesRes-decorator';
 import { penaltyData } from 'src/common/document';
-
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('penalty')
 export class PenaltyController {
-  constructor(private readonly penaltyService: PenaltyService) { }
+  constructor(private readonly penaltyService: PenaltyService) {}
 
   ///
   @Post()

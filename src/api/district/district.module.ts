@@ -10,5 +10,6 @@ import { RegionModule } from '../region/region.module';
   imports: [TypeOrmModule.forFeature([District]), RegionModule],
   controllers: [DistrictController],
   providers: [DistrictService],
+  exports: [DistrictService],
 })
 export class DistrictModule {}

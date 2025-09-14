@@ -5,7 +5,7 @@ import { IsNumber, IsOptional, IsString } from 'class-validator';
 export class QueryPaginationDto {
   @ApiPropertyOptional({
     type: 'string',
-    example: 'Eshmat',
+    example: 'model',
     description: 'Query for search',
   })
   @IsString()

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { Customer } from './customer.entity';
 import { Car } from './car.entity';
 
@@ -12,6 +12,12 @@ export class AdoptedCar {
 
   @Column({ default: true })
   is_adopted: boolean;
+
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
 
   @ManyToOne(() => Customer, (customer) => customer.adoptedCars)
   customer: Customer;

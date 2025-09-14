@@ -1,4 +1,5 @@
 import { Repository } from 'typeorm';
-import { Order } from '../entity/order.entity';
+import { Order } from '../';
 
-export type OrderRepository = Repository<Order>;
+export type orderRepository = Repository<Order>;
+

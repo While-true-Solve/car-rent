@@ -49,7 +49,7 @@ export class BrandController {
   }
 
   @SwagSuccessRes(
-    'ger all brands with pagintion',
+    'get all brands with pagintion',
     HttpStatus.OK,
     'get brands with pagination',
     200,
@@ -67,10 +67,6 @@ export class BrandController {
     return this.brandService.findAllWithPagination({
       where,
       order: { created_at: 'DESC' },
-      select: {
-        id: true,
-        name: true,
-      },
       relations: { cars: true },
       skip: page,
       take: limit,

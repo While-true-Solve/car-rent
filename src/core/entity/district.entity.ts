@@ -5,8 +5,10 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Region } from './region.entity';
+import { Car } from './car.entity';
 
 @Entity('district')
 export class District {
@@ -22,7 +24,11 @@ export class District {
   @UpdateDateColumn({ type: 'timestamp' })
   updated_at: Date;
 
-  
+  @OneToMany(() => Car, (car) => car.district, {
+    onDelete: 'CASCADE',
+  })
+  cars: Car[];
+
   @ManyToOne(() => Region, (region) => region.districts, {
     onDelete: 'CASCADE',
   })

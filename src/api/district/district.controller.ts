@@ -24,6 +24,7 @@ import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/decorator/roles-decorator';
 import { UserRole } from 'src/common/enum/user-enum';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('district')
@@ -41,6 +42,7 @@ export class DistrictController {
   @SwagFailedRes()
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Post()
+  @ApiBearerAuth()
   create(@Body() createDistrictDto: CreateDistrictDto) {
     return this.districtService.create(createDistrictDto);
   }

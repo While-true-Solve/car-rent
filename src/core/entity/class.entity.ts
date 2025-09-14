@@ -14,7 +14,7 @@ export class Class {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'enum', enum: CarClass , unique:true})
+  @Column({ type: 'enum', enum: CarClass, unique: true })
   name: CarClass;
 
   @CreateDateColumn({ type: 'timestamp' })

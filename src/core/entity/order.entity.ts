@@ -4,11 +4,14 @@ import {
   Column,
   ManyToOne,
   OneToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
 } from 'typeorm';
 import { Car } from './car.entity';
 import { Customer } from './customer.entity';
 import { Payment } from './payment.entity';
 import { Penalty } from './penalty.entity';
+import { OrderStatus } from 'src/common/enum/order-status-enum';
 
 @Entity('order')
 export class Order {
@@ -24,6 +27,19 @@ export class Order {
   @Column('decimal')
   total_amount: number;
 
+  @CreateDateColumn({ type: 'timestamp' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp' })
+  updated_at: Date;
+
+  @Column({
+    type: 'enum',
+    enum: OrderStatus,
+    default: OrderStatus.ACTIVE,
+  })
+  status: OrderStatus;
+
   @ManyToOne(() => Car, (car) => car.orders)
   car: Car;
 
@@ -33,6 +49,7 @@ export class Order {
   @OneToOne(() => Payment, (payment) => payment.order)
   payment: Payment;
 
-  @OneToOne(() => Penalty, (penalty) => penalty.order)
+  // order.entity.ts
+  @OneToOne(() => Penalty, (penalty) => penalty.order, { cascade: true })
   penalty: Penalty;
 }

@@ -8,7 +8,7 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { BaseService } from 'src/infrastructure/base/base.servise';
 import { Order, Payment } from 'src/core';
-import type { OrderRepository, PaymentRepository } from 'src/core';
+import type { orderRepository, PaymentRepository } from 'src/core';
 import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
@@ -19,7 +19,7 @@ export class PaymentService extends BaseService<
 > {
   constructor(
     @InjectRepository(Payment) private readonly paymentRepo: PaymentRepository,
-    @InjectRepository(Order) private readonly orderRepo: OrderRepository,
+    @InjectRepository(Order) private readonly orderRepo: orderRepository,
   ) {
     super(paymentRepo);
   }

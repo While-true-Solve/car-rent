@@ -58,7 +58,7 @@ export class ClassCarController {
   findAllPaginationClass_car(@Query() queryDto: QueryPaginationDto) {
     const { query, page = 1, limit = 10 } = queryDto
     return this.classCarService.findAllWithPagination({
-      where: query ? { id: ILike(`%${query}%`) } : {},
+      where: query ? { car: { model: ILike(`%${query}%`) }} : {},   
       order: { created_at: 'DESC' },
       relations: { classEntity: true, car: true },
       skip: page,

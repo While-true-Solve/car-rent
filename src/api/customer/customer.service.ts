@@ -1,4 +1,9 @@
-import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { BaseService } from 'src/infrastructure/base/base.servise';
@@ -30,42 +35,46 @@ export class CustomerService extends BaseService<
     private readonly customerRepo: CustomerRepository,
     private readonly crypto: CryptoService,
     private readonly tokenService: TokenService,
-    private readonly notificationService: NotificationService
+    private readonly notificationService: NotificationService,
   ) {
     super(customerRepo);
   }
 
-  async registerCustomer(createCustomerDto: CreateCustomerDto,): Promise<ISuccessRes> {
-
+  async registerCustomer(
+    createCustomerDto: CreateCustomerDto,
+  ): Promise<ISuccessRes> {
     const { phone_number, email, password, ...rest } = createCustomerDto;
-    
-    const exists_number = await this.customerRepo.findOne({ where: { phone_number } });
+
+    const exists_number = await this.customerRepo.findOne({
+      where: { phone_number },
+    });
     if (exists_number && exists_number.is_verified == true)
       throw new HttpException('Phone number alread exists', 400); // tel raqam unique ekanligini tekshirish
-    
+
     const exists_email = await this.customerRepo.findOne({ where: { email } });
-    if (exists_email && exists_email.is_verified == true) throw new HttpException('Email alread exists', 400); // email unique ekanligini tekshirish
-    
+    if (exists_email && exists_email.is_verified == true)
+      throw new HttpException('Email alread exists', 400); // email unique ekanligini tekshirish
+
     const hashed_password = await this.crypto.encrypt(password); // parolni hashlash
-    
+
     // 6 honali OTP generatsiya qilish
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     // console.log(email);
 
-    const createCustomer =  this.customerRepo.create({
+    const createCustomer = this.customerRepo.create({
       ...rest,
       email,
       phone_number,
       password: hashed_password,
       otp,
       is_verified: false,
-    } );
+    });
 
-    const newCustomer = await this.customerRepo.save(createCustomer)
+    const newCustomer = await this.customerRepo.save(createCustomer);
     console.log(newCustomer);
-    
+
     //Email ga OTP yuborish
-    this.notificationService.sendOTP(email, otp)
+    this.notificationService.sendOTP(email, otp);
 
     return successRes({
       message:
@@ -74,7 +83,9 @@ export class CustomerService extends BaseService<
     });
   }
 
-  async loginCustomer(loginCustomerDto: LoginCustomerDto): Promise<ISuccessRes> {
+  async loginCustomer(
+    loginCustomerDto: LoginCustomerDto,
+  ): Promise<ISuccessRes> {
     const { email, otpPass } = loginCustomerDto;
     const customer = await this.customerRepo.findOne({ where: { email } });
     if (!customer) {
@@ -82,7 +93,7 @@ export class CustomerService extends BaseService<
     }
 
     if (customer.otp !== otpPass) {
-      await super.remove(customer.id)
+      await super.remove(customer.id);
       throw new BadRequestException('Invalid OTP. Please try again.');
     }
 
@@ -90,7 +101,7 @@ export class CustomerService extends BaseService<
     await this.customerRepo.save(customer);
 
     return successRes({
-      message: 'Login successful'
+      message: 'Login successful',
     });
   }
 
@@ -114,7 +125,6 @@ export class CustomerService extends BaseService<
     );
 
     // OTP ni emailga yuborish (masalan nodemailer bilan)
-    
 
     return successRes({
       message: 'OTP sent to your email.',
@@ -151,7 +161,7 @@ export class CustomerService extends BaseService<
       confirmLink: 'http://localhost:1024/api/v1/customer/verifyPass',
     });
   } // jonatilgan otp ni tekshirib confirmning linkini berish
-  
+
   async confirmPass(confirmPassDto: ConfirmPassDto): Promise<ISuccessRes> {
     const { email, passwordOne, passwordTwo } = confirmPassDto;
 
@@ -172,7 +182,10 @@ export class CustomerService extends BaseService<
     return successRes({ message: 'Password reset successfully' });
   } //password ni yangilash
 
-  async signInCustomer(signInCustomerDto: SignInCustomerDto, res: Response): Promise<ISuccessRes> {
+  async signInCustomer(
+    signInCustomerDto: SignInCustomerDto,
+    res: Response,
+  ): Promise<ISuccessRes> {
     const { email, password } = signInCustomerDto;
 
     const customer = await this.customerRepo.findOne({ where: { email } });
@@ -180,7 +193,6 @@ export class CustomerService extends BaseService<
       throw new BadRequestException('username or password incorrect');
     }
 
-    
     const isMatchPassword = await this.crypto.decrypt(
       password,
       customer?.password,
@@ -188,21 +200,24 @@ export class CustomerService extends BaseService<
     if (!isMatchPassword) {
       throw new BadRequestException('username or password incorrect');
     }
-    
+
     const payload: IPayload = {
       id: customer.id,
       isActive: customer.is_active,
       role: customer.role,
     };
-    
+
     const accessToken = await this.tokenService.accessToken(payload);
     const refreshToken = await this.tokenService.refreshToken(payload);
-    
+
     await this.tokenService.writeCookie(res, 'userToken', refreshToken, 15);
     return successRes({ token: accessToken });
   }
 
-  async signOutCustomer(signOutDto: SignOutCustomerDto, res: Response): Promise<ISuccessRes> {
+  async signOutCustomer(
+    signOutDto: SignOutCustomerDto,
+    res: Response,
+  ): Promise<ISuccessRes> {
     const { id } = signOutDto;
     const customer = await this.customerRepo.findOne({ where: { id } });
     if (!customer) {
@@ -213,7 +228,10 @@ export class CustomerService extends BaseService<
     return successRes({});
   }
 
-  async updateCustomer(id: string, updateCustomerDto: UpdateCustomerDto): Promise<ISuccessRes> {
+  async updateCustomer(
+    id: string,
+    updateCustomerDto: UpdateCustomerDto,
+  ): Promise<ISuccessRes> {
     const { email, phone_number, password, ...rest } = updateCustomerDto;
 
     const customer = await this.customerRepo.findOne({ where: { id } });
@@ -233,10 +251,12 @@ export class CustomerService extends BaseService<
     }
 
     if (phone_number && phone_number !== customer.phone_number) {
+      const exists_number = await this.customerRepo.findOne({
+        where: { phone_number },
+      });
 
-      const exists_number = await this.customerRepo.findOne({ where: { phone_number } });
-
-      if (exists_number) throw new BadRequestException('Phone number already exists');
+      if (exists_number)
+        throw new BadRequestException('Phone number already exists');
       customer.phone_number = phone_number;
     }
 

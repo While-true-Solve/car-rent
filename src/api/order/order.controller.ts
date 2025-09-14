@@ -6,14 +6,11 @@ import {
   Patch,
   Param,
   Delete,
-  HttpStatus,
-  applyDecorators,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
@@ -24,14 +21,13 @@ import {
   SwagSuccessRes,
 } from 'src/common/decorator/swaggerSuccesRes-decorator';
 import { orderData } from 'src/common/document';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard, RolesGuard) //  barcha metodlarga guard ishlaydi
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @Post()
-  @Roles(UserRole.USER) // faqat Customer order yaratadi
   @SwagSuccessRes(
     'Order yaratish',
     201,
@@ -40,14 +36,15 @@ export class OrderController {
     'success',
     orderData,
   )
-  @SwagFailedRes(400, 'Order yaratishda xatolik', 400, 'Invalid input data')
+  @SwagFailedRes() // faqat Customer order yaratadi
+  @Roles(UserRole.SUPER_ADMIN)
+  @Post()
+  @ApiBearerAuth()
   async create(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.createOrder(createOrderDto);
   }
 
   // 2. Order + Payment birga (tranzaksiya orqali)
-  @Post('with-payment')
-  @Roles(UserRole.USER) // faqat Customer to‘lov qiladi
   @SwagSuccessRes(
     'Order va Payment yaratish',
     201,
@@ -62,12 +59,13 @@ export class OrderController {
     400,
     'Transaction failed',
   )
+  @Post('with-payment')
+  @Roles(UserRole.USER, UserRole.SUPER_ADMIN) // faqat Customer to‘lov qiladi
+  @ApiBearerAuth()
   async createWithPayment(@Body() createOrderDto: CreateOrderDto) {
     return this.orderService.createOrderWithPayment(createOrderDto);
   }
 
-  @Get()
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN) // faqat adminlar ko‘radi
   @SwagSuccessRes(
     'Barcha orderlarni olish',
     200,
@@ -77,12 +75,13 @@ export class OrderController {
     [orderData],
   )
   @SwagFailedRes(400, 'Orderlarni olishda xatolik')
+  @Get()
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN) // faqat adminlar ko‘radi
+  @ApiBearerAuth()
   findAll() {
     return this.orderService.getOrders();
   }
 
-  @Get('paginated')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Orderlarni pagination bilan olish',
     200,
@@ -92,12 +91,13 @@ export class OrderController {
     { items: [orderData], total: 1, page: 1, limit: 10 },
   )
   @SwagFailedRes(400, 'Pagination xatolik berdi')
+  @Get('paginated')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   async getOrdersPaginated(@Query() query: QueryPaginationDto) {
     return this.orderService.getOrdersPaginated(query);
   }
 
-  @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @SwagSuccessRes(
     'Bitta orderni olish',
     200,
@@ -107,12 +107,13 @@ export class OrderController {
     orderData,
   )
   @SwagFailedRes(404, 'Order topilmadi', 404, 'Order not found')
+  @Get(':id')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
+  @ApiBearerAuth()
   findOne(@Param('id') id: string) {
     return this.orderService.getOrderById(id);
   }
 
-  @Patch(':id/cancel')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @SwagSuccessRes(
     'Orderni bekor qilish',
     200,
@@ -122,12 +123,13 @@ export class OrderController {
     { ...orderData, status: 'CANCELLED' },
   )
   @SwagFailedRes(404, 'Order topilmadi', 404, 'Order not found')
+  @Patch(':id/cancel')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, 'ID')
+  @ApiBearerAuth()
   async cancel(@Param('id') id: string) {
     return this.orderService.cancelOrder(id);
   }
 
-  @Delete(':id')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @SwagSuccessRes(
     'Orderni ochirish',
     200,
@@ -137,6 +139,9 @@ export class OrderController {
     { deleted: true },
   )
   @SwagFailedRes(404, 'Order topilmadi', 404, 'Order not found')
+  @Delete(':id')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
+  @ApiBearerAuth()
   remove(@Param('id') id: string) {
     return this.orderService.remove(id);
   }

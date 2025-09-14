@@ -67,10 +67,6 @@ export class BrandController {
     return this.brandService.findAllWithPagination({
       where,
       order: { created_at: 'DESC' },
-      select: {
-        id: true,
-        name: true,
-      },
       relations: { cars: true },
       skip: page,
       take: limit,

@@ -6,14 +6,11 @@ import {
   Patch,
   Param,
   Delete,
-  applyDecorators,
-  HttpStatus,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { PenaltyService } from './penalty.service';
 import { CreatePenaltyDto } from './dto/create-penalty.dto';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
@@ -24,6 +21,7 @@ import {
   SwagSuccessRes,
 } from 'src/common/decorator/swaggerSuccesRes-decorator';
 import { penaltyData } from 'src/common/document';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('penalty')
@@ -31,8 +29,7 @@ export class PenaltyController {
   constructor(private readonly penaltyService: PenaltyService) {}
 
   ///
-  @Post()
-  @Roles(UserRole.SUPER_ADMIN)
+
   @SwagSuccessRes(
     'Penalty yaratish',
     201,
@@ -42,11 +39,13 @@ export class PenaltyController {
     penaltyData,
   )
   @SwagFailedRes(400, 'Penalty yaratib bolmadi', 400, 'Invalid data')
+  @Post()
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   create(@Body() createPenaltyDto: CreatePenaltyDto) {
     return this.penaltyService.createPenaltyForOrder(createPenaltyDto);
   }
 
-  @Get()
   @SwagSuccessRes(
     'Barcha Penaltylarni olish',
     200,
@@ -55,14 +54,15 @@ export class PenaltyController {
     'success',
     [penaltyData],
   )
+  @Get()
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   findAll() {
     return this.penaltyService.findAll();
   }
 
   // Pagination Penalty
-  @Get('paginated')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+
   @SwagSuccessRes(
     'Penaltylarni pagination bilan olish',
     200,
@@ -76,12 +76,13 @@ export class PenaltyController {
       limit: 10,
     },
   )
+  @Get('paginated')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   async findAllPaginated(@Query() query: QueryPaginationDto) {
     return this.penaltyService.findAllPaginated(query);
   }
 
-  @Get(':id')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @SwagSuccessRes(
     'Penaltyni ID orqali olish',
     200,
@@ -91,13 +92,15 @@ export class PenaltyController {
     penaltyData,
   )
   @SwagFailedRes(404, 'Penalty topilmadi', 404, 'Penalty not found')
+  @Get(':id')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
+  @ApiBearerAuth()
   findOne(@Param('id') id: string) {
     return this.penaltyService.findOneById(id);
   }
 
   ///
-  @Patch(':id/pay')
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+
   @SwagSuccessRes(
     'Penaltyni tolangan deb belgilash',
     200,
@@ -107,12 +110,13 @@ export class PenaltyController {
     { ...penaltyData, is_paid_penalty: true },
   )
   @SwagFailedRes(404, 'Penalty topilmadi', 404, 'Penalty not found')
+  @Patch(':id/pay')
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   markAsPaid(@Param('id') id: string) {
     return this.penaltyService.markAsPaid(id);
   }
 
-  @Delete(':id')
-  @Roles(UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Penaltyni ochirish',
     200,
@@ -122,6 +126,9 @@ export class PenaltyController {
     { deleted: true },
   )
   @SwagFailedRes(404, 'Penalty topilmadi', 404, 'Penalty not found')
+  @Delete(':id')
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   remove(@Param('id') id: string) {
     return this.penaltyService.remove(id);
   }

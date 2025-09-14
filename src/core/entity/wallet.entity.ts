@@ -13,8 +13,8 @@ export class Wallet {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  type: string;
+  // @Column()
+  // type: string;
 
   @Column()
   card: string;

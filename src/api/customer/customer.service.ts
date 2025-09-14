@@ -199,8 +199,6 @@ export class CustomerService extends BaseService<
     const refreshToken = await this.tokenService.refreshToken(payload);
     
     await this.tokenService.writeCookie(res, 'userToken', refreshToken, 15);
-    console.log(successRes({ token: accessToken }));
-
     return successRes({ token: accessToken });
   }
 

@@ -59,7 +59,7 @@ export class AdopdetCarController {
   findAllPaginationAdopted_car(@Query() queryDto: QueryPaginationDto) {
     const { query, page = 1, limit = 10 } = queryDto
     return this.adopdetCarService.findAllWithPagination({
-      where: query ? { car: {model: ILike(`%${query}%`) }} : {},
+      where: query ? { car: {model: ILike(`%${query}%`) }} : {},    
       order: { created_at: 'DESC' },
       relations: { customer: true, car: true },
       skip: page,
@@ -67,7 +67,7 @@ export class AdopdetCarController {
     });
   }
 
-  
+
   // FindAll  =====================
   @SwagSuccessRes(
     'get car',

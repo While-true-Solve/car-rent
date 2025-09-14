@@ -25,5 +25,6 @@ export * from './repository/order.repository';
 export * from './repository/payment.repository';
 export * from './repository/penalty.repository';
 export * from './repository/brand.rpository';
+export * from './repository/customer.repository';
 export * from './repository/class.repository';
 export * from './repository/region.repository';

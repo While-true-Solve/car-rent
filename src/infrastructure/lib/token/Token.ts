@@ -14,7 +14,7 @@ const {
 
 @Injectable()
 export class TokenService {
-  constructor(private readonly jwt: JwtService) {}
+  constructor(private readonly jwt: JwtService) { }
 
   async accessToken(payload: IPayload): Promise<string> {
     return this.jwt.signAsync(payload, {
@@ -40,6 +40,14 @@ export class TokenService {
       httpOnly: true,
       secure: true,
       maxAge: Number(time) * 60 * 60 * 1000,
+    });
+  }
+
+  async clearCookie(res: Response, name: string) {
+    res.clearCookie(name, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
     });
   }
 

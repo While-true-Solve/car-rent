@@ -18,6 +18,8 @@ import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
+import { MailerModule } from '@nestjs-modules/mailer';
+
 const { url, sync } = config.DB;
 
 @Module({
@@ -30,6 +32,23 @@ const { url, sync } = config.DB;
       autoLoadEntities: true,
       entities: ['dist/core/entity/*.entity{.ts,.js}'],
     }),
+
+    MailerModule.forRoot({
+      // OTP uchun mailer modulini togirlash
+      transport: {
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: 'jorabekasatullayev61@gmail.com',
+          pass: '2468Jora_',
+        },
+      },
+      defaults: {
+        from: '"Car Rent" <jorabekasatullayev61@gmail.com>',
+      },
+    }),
+
     AdminModule,
     PaymentModule,
     ClassModule,

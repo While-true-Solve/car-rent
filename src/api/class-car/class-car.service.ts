@@ -1,14 +1,16 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateClassCarDto } from './dto/create-class-car.dto';
 import { UpdateClassCarDto } from './dto/update-class-car.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Car, Class, ClassCars, Order } from 'src/core';
+import { Car, Class, ClassCars} from 'src/core';
 import { BaseService } from 'src/infrastructure/base/base.servise';
 import type { ClassRepository } from 'src/core';
 import type { ClassCarRepository } from 'src/core/repository/class-car.repository';
 import type { carRepository } from 'src/core';
 import { successRes } from 'src/infrastructure/response/successRes';
-import type { orderRepository } from 'src/core';
 
 @Injectable()
 export class ClassCarService extends BaseService<
@@ -23,8 +25,6 @@ export class ClassCarService extends BaseService<
     @InjectRepository(Class) private readonly classRepo: ClassRepository,
 
     @InjectRepository(Car) private readonly carRepo: carRepository,
-
-    @InjectRepository(Order) private readonly orderRepo: orderRepository,
   ) {
     super(classCarRepo);
   }
@@ -94,5 +94,4 @@ export class ClassCarService extends BaseService<
 
     return successRes(classCar);
   }
-
 }

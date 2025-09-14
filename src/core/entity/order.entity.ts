@@ -32,7 +32,6 @@ export class Order {
   })
   status: OrderStatus;
 
-
   @ManyToOne(() => Car, (car) => car.orders)
   car: Car;
 

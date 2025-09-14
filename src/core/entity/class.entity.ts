@@ -14,7 +14,7 @@ export class Class {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'enum', enum: CarClass , unique:true})
+  @Column({ type: 'enum', enum: CarClass, unique: true })
   name: CarClass;
 
   @CreateDateColumn({ type: 'timestamp' })
@@ -25,10 +25,4 @@ export class Class {
 
   @OneToMany(() => ClassCars, (cc) => cc.classEntity)
   classCars: ClassCars[];
-
-  @CreateDateColumn({ type: 'timestamp' })
-  created_at: Date;
-
-  @UpdateDateColumn({ type: 'timestamp' })
-  updated_at: Date;
 }

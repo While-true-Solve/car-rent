@@ -12,13 +12,11 @@ import {
   AdoptedCar,
   Car,
   Customer,
-  Order,
   type adopted_carRepository,
   type carRepository,
   type CustomerRepository,
 } from 'src/core';
 import { successRes } from 'src/infrastructure/response/successRes';
-import type { orderRepository } from 'src/core/repository/order.repository';
 
 @Injectable()
 export class AdopdetCarService extends BaseService<
@@ -34,8 +32,6 @@ export class AdopdetCarService extends BaseService<
     private readonly customerRepo: CustomerRepository,
 
     @InjectRepository(Car) private readonly carRepo: carRepository,
-
-    @InjectRepository(Order) private readonly orderRepo: orderRepository,
   ) {
     super(adopdet_carRepo);
   }
@@ -47,10 +43,12 @@ export class AdopdetCarService extends BaseService<
       throw new BadRequestException('Adopted date cannot be in the future');
     }
 
-    // const customer = await this.customerRepo.findOne({ where: { id: createAdopdetCarDto.customer_id } })
-    // if (!customer) {
-    //   throw new NotFoundException('Customer not found')
-    // }
+    const customer = await this.customerRepo.findOne({
+      where: { id: createAdopdetCarDto.customer_id },
+    });
+    if (!customer) {
+      throw new NotFoundException('Customer not found');
+    }
 
     const car = await this.carRepo.findOne({
       where: { id: createAdopdetCarDto.car_id },
@@ -70,7 +68,7 @@ export class AdopdetCarService extends BaseService<
     const newAdopdet = this.adopdet_carRepo.create({
       adopted_date: createAdopdetCarDto.adopted_date,
       is_adopted: createAdopdetCarDto.is_adopted ?? true,
-      // customer,
+      customer,
       car,
     });
     await this.adopdet_carRepo.save(newAdopdet);

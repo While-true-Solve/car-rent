@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AdoptedCar, Car, Customer, Order } from 'src/core';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([AdoptedCar, Car, Customer, Order])],
+  imports: [TypeOrmModule.forFeature([AdoptedCar, Car, Customer])],
   controllers: [AdopdetCarController],
   providers: [AdopdetCarService],
 })

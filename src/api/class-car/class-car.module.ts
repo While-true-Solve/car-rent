@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Car, Class, ClassCars, Order } from 'src/core';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ClassCars, Car, Class,Order])],
+  imports: [TypeOrmModule.forFeature([ClassCars, Car, Class])],
   controllers: [ClassCarController],
   providers: [ClassCarService],
 })

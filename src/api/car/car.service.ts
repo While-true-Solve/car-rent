@@ -30,18 +30,23 @@ export class CarService extends BaseService<CreateCarDto, UpdateCarDto, Car> {
   }
 
   async createCar(createCarDto: CreateCarDto) {
-    // const brand = await this.brandRepo.findOne({where: {id: createCarDto.brand_id}})
-    // if (!brand) {
-    //   throw new NotFoundException('Brand not found')
-    // }
+    const brand = await this.brandRepo.findOne({
+      where: { id: createCarDto.brand_id },
+    });
+    if (!brand) {
+      throw new NotFoundException('Brand not found');
+    }
 
-    // const district = await this.districtRepo.findOne({where: {id: createCarDto.district_id}})
-    // if (!district) {
-    //   throw new NotFoundException('District not found')
-    // }
+    const district = await this.districtRepo.findOne({
+      where: { id: createCarDto.district_id },
+    });
+    if (!district) {
+      throw new NotFoundException('District not found');
+    }
 
     const car = this.carRepo.create(createCarDto);
-
+    car.brand = brand;
+    car.district = district;
     const saveCar = await this.carRepo.save(car);
 
     return successRes(saveCar, 201);
@@ -98,10 +103,9 @@ export class CarService extends BaseService<CreateCarDto, UpdateCarDto, Car> {
       .where('car.id = :carId', { carId: id })
       .andWhere('order.finish_time >= :today AND order.status = :status', {
         today,
-        status: OrderStatus.ACTIVE  
+        status: OrderStatus.ACTIVE,
       })
       .getOne();
-
 
     if (activeOrder) {
       throw new BadRequestException(

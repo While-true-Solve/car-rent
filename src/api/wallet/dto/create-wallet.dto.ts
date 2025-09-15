@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsUUID, IsNumberString, Length, Matches } from 'class-validator';
+import { IsNotEmpty, IsUUID, IsNumberString, Length, Matches, IsEnum } from 'class-validator';
+
+export enum CardType {
+  UZCARD = 'UZCARD',
+  HUMO = 'HUMO',
+  VISA = 'VISA',
+  MASTERCARD = 'MASTERCARD',
+}
 
 export class CreateWalletDto {
   @ApiProperty({
@@ -26,4 +33,16 @@ export class CreateWalletDto {
     message: "Karta raqami faqat 16 ta raqamdan iborat bo'lishi kerak",
   })
   card: string;
+
+  @ApiProperty({
+    type: 'string',
+    description: 'Card type',
+    enum: CardType,
+    example: 'UZCARD',
+  })
+  @IsEnum(CardType, {
+    message: "Karta turi faqat quyidagilardan biri bo'lishi kerak: UZCARD, HUMO, VISA, MASTERCARD",
+  })
+  @IsNotEmpty()
+  type: CardType;
 }

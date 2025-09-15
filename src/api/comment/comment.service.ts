@@ -43,7 +43,7 @@ export class CommentService extends BaseService<
     }
 
     const newComment = this.commentRepo.create({
-      car: existsCar,
+      car: car_id ? { id: car_id } : undefined,
       customer: existsCustomer,
       impression,
     });

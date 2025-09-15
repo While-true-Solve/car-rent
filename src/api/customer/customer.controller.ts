@@ -16,6 +16,9 @@ import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { SignInCustomerDto } from './dto/signin-customer.dto';
 import { SignOutCustomerDto } from './dto/signout-customer.dto';
 import { LoginCustomerDto } from './dto/login.customer-otp.dto';
+import { ForgetPassDto } from './dto/forget-pass.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { ConfirmPassDto } from './dto/confirm-pass.dto';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/decorator/roles-decorator';
@@ -50,7 +53,7 @@ export class CustomerController {
     'Validation error or already exists',
   )
   @Roles('public')
-  @Post()
+  @Post('register')
   create(@Body() createCustomerDto: CreateCustomerDto) {
     return this.customerService.registerCustomer(createCustomerDto);
   }
@@ -61,13 +64,81 @@ export class CustomerController {
     'Customer logged in successfully',
     200,
     'success',
-    { token: 'jwt.token.here' },
+    { message: 'Login successful' },
   )
   @SwagFailedRes(401, 'Failed to login customer', 401, 'Invalid credentials')
   @Roles('public')
-  @Post('logen')
+  @Post('login')
   login(@Body() loginCustomerDto: LoginCustomerDto) {
     return this.customerService.loginCustomer(loginCustomerDto);
+  }
+
+  @SwagSuccessRes(
+    'Forget password',
+    200,
+    'OTP sent to email successfully',
+    200,
+    'success',
+    { message: 'OTP sent to your email.' },
+  )
+  @SwagFailedRes(404, 'Failed to send OTP', 404, 'Email not found')
+  @Roles('public')
+  @Post('forgetPass')
+  forgetPass(@Body() forgetPassDto: ForgetPassDto) {
+    return this.customerService.forgetPass(forgetPassDto);
+  }
+
+  @SwagSuccessRes(
+    'Verify OTP',
+    200,
+    'OTP verified successfully',
+    200,
+    'success',
+    { message: 'OTP verified successfully' },
+  )
+  @SwagFailedRes(400, 'Failed to verify OTP', 400, 'Invalid or expired OTP')
+  @Roles('public')
+  @Post('verifyOtp')
+  verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    return this.customerService.verifyOtp(verifyOtpDto);
+  }
+
+  @SwagSuccessRes(
+    'Confirm new password',
+    200,
+    'Password reset successfully',
+    200,
+    'success',
+    { message: 'Password reset successfully' },
+  )
+  @SwagFailedRes(400, 'Failed to reset password', 400, 'Passwords do not match')
+  @Roles('public')
+  @Post('confirmPass')
+  confirmPass(@Body() confirmPassDto: ConfirmPassDto) {
+    return this.customerService.confirmPass(confirmPassDto);
+  }
+
+  @SwagSuccessRes(
+    'Sign in customer',
+    200,
+    'Customer signed in successfully',
+    200,
+    'success',
+    { message: 'Signed in successfully' },
+  )
+  @SwagFailedRes(
+    400,
+    'Failed to sign in customer',
+    400,
+    'Invalid data or session already active',
+  )
+  @Roles('public')
+  @Post('signIn')
+  signIn(
+    @Body() signInCustomerDto: SignInCustomerDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.customerService.signInCustomer(signInCustomerDto, res);
   }
 
   @SwagSuccessRes(
@@ -79,17 +150,21 @@ export class CustomerController {
     [customerData],
   )
   @SwagFailedRes(404, 'Failed to get customers', 404, 'No customers found')
-  @Get()
+
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Get('withPagination')
   @ApiBearerAuth()
   findAllWithPagination(@Query() queryDto: QueryPaginationDto) {
     const { query, page, limit } = queryDto;
     const where = query ? { full_name: ILike(`%${query}%`) } : {};
     return this.customerService.findAllWithPagination({
       where,
-      order: { created_at: 'DESC' },
-      select: {
-        id: true,
-        is_active: true,
+      select: { id: true, is_active: true },
+      relations: {
+        orders: true,
+        wallets: true,
+        comments: true,
+        adoptedCars: true,
       },
       relations: {
         orders: true,
@@ -113,6 +188,7 @@ export class CustomerController {
   @SwagFailedRes(404, 'Failed to get customers', 404, 'No customers found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Get('all')
+  @ApiBearerAuth()
   findAll() {
     return this.customerService.findAll({
       relations: {
@@ -135,6 +211,7 @@ export class CustomerController {
   @SwagFailedRes(404, 'Failed to get customer', 404, 'Customer not found')
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @Get(':id')
+  @ApiBearerAuth()
   findOne(@Param('id') id: string) {
     return this.customerService.findOneById(id, {
       relations: {
@@ -162,6 +239,7 @@ export class CustomerController {
   )
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @Patch(':id')
+  @ApiBearerAuth()
   update(
     @Param('id') id: string,
     @Body() updateCustomerDto: UpdateCustomerDto,
@@ -180,6 +258,7 @@ export class CustomerController {
   @SwagFailedRes(404, 'Failed to delete customer', 404, 'Customer not found')
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @Delete(':id')
+  @ApiBearerAuth()
   remove(@Param('id') id: string) {
     return this.customerService.removeCustomer(id);
   }
@@ -222,7 +301,8 @@ export class CustomerController {
     'Invalid session or already signed out',
   )
   @Roles('ID')
-  @Post('signout')
+  @Post('signOut')
+  @ApiBearerAuth()
   signOut(
     @Body() signOutCustomerDto: SignOutCustomerDto,
     @Res({ passthrough: true }) res: Response,

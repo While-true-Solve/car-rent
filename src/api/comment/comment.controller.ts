@@ -42,6 +42,7 @@ export class CommentController {
     'Already exists or invalid data', // Allaqachon mavjud yoki yaroqsiz ma’lumotlar
   )
   @Roles(UserRole.SUPER_ADMIN, 'ID')
+  @ApiBearerAuth()
   @Post()
   create(@Body() createCommentDto: CreateCommentDto) {
     return this.commentService.createComment(createCommentDto);
@@ -107,6 +108,7 @@ export class CommentController {
     'Comment with given ID does not exist',
   )
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, 'ID')
+  @ApiBearerAuth()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.commentService.findOneById(id);
@@ -127,6 +129,7 @@ export class CommentController {
     'Validation failed or comment not found',
   )
   @Roles('ID')
+  @ApiBearerAuth()
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {
     return this.commentService.updateComment(id, updateCommentDto);
@@ -147,6 +150,7 @@ export class CommentController {
     'Comment with given ID does not exist',
   )
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @ApiBearerAuth()
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.commentService.remove(id);

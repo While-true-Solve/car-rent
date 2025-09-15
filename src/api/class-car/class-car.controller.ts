@@ -52,9 +52,10 @@ export class ClassCarController {
     return this.classCarService.createClassCar(createClassCarDto);
   }
 
+  @SwagSuccessRes('pagination for car-class')
+  @SwagFailedRes()
   @Roles('public')
   @Get()
-  @ApiBearerAuth()
   findAllPaginationClass_car(@Query() queryDto: QueryPaginationDto) {
     const { query, page = 1, limit = 10 } = queryDto;
     return this.classCarService.findAllWithPagination({

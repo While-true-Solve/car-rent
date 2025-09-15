@@ -53,6 +53,8 @@ export class AdopdetCarController {
     return this.adopdetCarService.createAdoped(createAdopdetCarDto);
   }
 
+  @SwagSuccessRes('paginaation for adopted car')
+  @SwagFailedRes()
   @Roles('public')
   @Get()
   @ApiBearerAuth()

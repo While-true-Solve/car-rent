@@ -166,12 +166,6 @@ export class CustomerController {
         comments: true,
         adoptedCars: true,
       },
-      relations: {
-        orders: true,
-        wallets: true,
-        comments: true,
-        adoptedCars: true,
-      },
       skip: page,
       take: limit,
     });
@@ -261,29 +255,6 @@ export class CustomerController {
   @ApiBearerAuth()
   remove(@Param('id') id: string) {
     return this.customerService.removeCustomer(id);
-  }
-
-  @SwagSuccessRes(
-    'Sign in customer',
-    200,
-    'Customer signed in successfully',
-    200,
-    'success',
-    { message: 'Signed in successfully' },
-  )
-  @SwagFailedRes(
-    400,
-    'Failed to sign in customer',
-    400,
-    'Invalid data or session already active',
-  )
-  @Roles('public')
-  @Post('signin')
-  signIn(
-    @Body() signInCustomerDto: SignInCustomerDto,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    return this.customerService.signInCustomer(signInCustomerDto, res);
   }
 
   @SwagSuccessRes(

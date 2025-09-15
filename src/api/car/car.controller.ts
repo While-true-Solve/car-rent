@@ -52,6 +52,8 @@ export class CarController {
     return this.carService.createCar(createCarDto);
   }
 
+  @SwagSuccessRes('paginaation for car')
+  @SwagFailedRes()
   @Roles('public')
   @Get()
   @ApiBearerAuth()

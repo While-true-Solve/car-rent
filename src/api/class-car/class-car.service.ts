@@ -53,7 +53,7 @@ export class ClassCarService extends BaseService<
       relations: { classEntity: true, car: true },
     });
 
-    return successRes(classCar, 201);
+    return successRes(saved, 201);
   }
 
   async updateClassCar(id: string, updateClassCarDto: UpdateClassCarDto) {

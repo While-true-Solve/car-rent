@@ -5,7 +5,6 @@ import { RepositoryPager } from '../pagination';
 import { successRes } from '../response/successRes';
 import {
   IFindOptions,
-  IPayload,
   IResponsePagination,
   ISuccessRes,
 } from 'src/common/interface';

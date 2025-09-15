@@ -100,7 +100,9 @@ export class ClassCarController {
   @Roles('public')
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.classCarService.findOneById(id);
+    return this.classCarService.findOneById(id, {
+      relations: { classEntity: true, car: true },
+    });
   }
 
   @SwagSuccessRes(

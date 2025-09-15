@@ -49,7 +49,7 @@ export class BrandController {
   }
 
   @SwagSuccessRes(
-    'ger all brands with pagintion',
+    'get all brands with pagintion',
     HttpStatus.OK,
     'get brands with pagination',
     200,

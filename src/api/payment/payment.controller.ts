@@ -6,13 +6,11 @@ import {
   Patch,
   Param,
   Delete,
-  HttpStatus,
-  applyDecorators,
   UseGuards,
 } from '@nestjs/common';
 import { PaymentService } from './payment.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody } from '@nestjs/swagger';
 import { AuthGuard } from 'src/common/guard/auth.guard';
 import { RolesGuard } from 'src/common/guard/roles.guard';
 import { Roles } from 'src/common/decorator/roles-decorator';
@@ -29,8 +27,7 @@ export class PaymentController {
   constructor(private readonly paymentService: PaymentService) {}
 
   // Paymentni Ruchnoy create qilish
-  @Post()
-  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+
   @SwagSuccessRes(
     'Payment yaratish',
     201,
@@ -40,13 +37,14 @@ export class PaymentController {
     paymentData,
   )
   @SwagFailedRes(400, 'Payment yaratishda xatolik', 400, 'Invalid input data')
+  @Post()
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   @ApiBody({ type: CreatePaymentDto })
   create(@Body() createPaymentDto: CreatePaymentDto) {
     return this.paymentService.createPayment(createPaymentDto);
   }
 
-  @Get()
-  @Roles(UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Barcha paymentlarni olish',
     200,
@@ -56,12 +54,13 @@ export class PaymentController {
     [paymentData],
   )
   @SwagFailedRes(400, 'Paymentlarni olishda xatolik')
+  @Get()
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   findAll() {
     return this.paymentService.findAllPayments();
   }
 
-  @Get(':id')
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, 'ID') // customer ozinikini kora olsin
   // @ApiParam({ name: 'id', description: 'Payment ID' })
   @SwagSuccessRes(
     'Bitta paymentni olish',
@@ -72,13 +71,14 @@ export class PaymentController {
     paymentData,
   )
   @SwagFailedRes(404, 'Payment topilmadi', 404, 'Payment not found')
+  @Get(':id')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, 'ID') // customer ozinikini kora olsin
+  @ApiBearerAuth()
   findOne(@Param('id') id: string) {
     return this.paymentService.findPaymentById(id);
   }
 
   // payment_status falsedan true ga ozgartirish ruchnoy
-  @Patch(':id/confirm')
-  @Roles(UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Paymentni tasdiqlash',
     200,
@@ -88,12 +88,13 @@ export class PaymentController {
     { ...paymentData, payment_status: true },
   )
   @SwagFailedRes(404, 'Payment topilmadi', 404, 'Payment not found')
+  @Patch(':id/confirm')
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   confirm(@Param('id') id: string) {
     return this.paymentService.confirmPayment(id);
   }
 
-  @Delete(':id')
-  @Roles(UserRole.SUPER_ADMIN)
   @SwagSuccessRes(
     'Paymentni ochirish',
     200,
@@ -103,6 +104,9 @@ export class PaymentController {
     { deleted: true },
   )
   @SwagFailedRes(404, 'Payment topilmadi', 404, 'Payment not found')
+  @Delete(':id')
+  @Roles(UserRole.SUPER_ADMIN)
+  @ApiBearerAuth()
   remove(@Param('id') id: string) {
     return this.paymentService.remove(id);
   }

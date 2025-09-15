@@ -22,13 +22,16 @@ import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
 import { name } from 'ejs';
 import { ILike } from 'typeorm';
-import { SwagFailedRes, SwagSuccessRes } from 'src/common/decorator/swaggerSuccesRes-decorator';
+import {
+  SwagFailedRes,
+  SwagSuccessRes,
+} from 'src/common/decorator/swaggerSuccesRes-decorator';
 import { walletData } from 'src/common/document/res-data-swagger/wallet-data';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('wallet')
 export class WalletController {
-  constructor(private readonly walletService: WalletService) { }
+  constructor(private readonly walletService: WalletService) {}
 
   @SwagSuccessRes(
     'Create wallet',
@@ -48,7 +51,7 @@ export class WalletController {
   @Post()
   @ApiBearerAuth()
   create(@Body() createWalletDto: CreateWalletDto, @Req() req: Request) {
-    this.walletService.createeWallet(createWalletDto, req);
+    return this.walletService.createeWallet(createWalletDto, req);
   }
 
   @SwagSuccessRes(
@@ -59,19 +62,14 @@ export class WalletController {
     'success',
     [walletData],
   )
-  @SwagFailedRes(
-    404,
-    'Failed to get wallets',
-    404,
-    'No wallets found',
-  )
+  @SwagFailedRes(404, 'Failed to get wallets', 404, 'No wallets found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Get()
   @ApiBearerAuth()
   findAllPaginationWallet(@Query() queryDto: QueryPaginationDto) {
     const { query, page = 1, limit = 10 } = queryDto;
 
-    const where = query ? { card: ILike(`%${query}%`) } : {}
+    const where = query ? { card: ILike(`%${query}%`) } : {};
 
     return this.walletService.findAllWithPagination({
       where,
@@ -90,12 +88,7 @@ export class WalletController {
     'success',
     [walletData],
   )
-  @SwagFailedRes(
-    404,
-    'Failed to get wallets',
-    404,
-    'No wallets found',
-  )
+  @SwagFailedRes(404, 'Failed to get wallets', 404, 'No wallets found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Get('all')
   findAll() {
@@ -110,18 +103,12 @@ export class WalletController {
     'success',
     walletData,
   )
-  @SwagFailedRes(
-    404,
-    'Failed to get wallet',
-    404,
-    'Wallet not found',
-  )
+  @SwagFailedRes(404, 'Failed to get wallet', 404, 'Wallet not found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, 'ID')
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.walletService.findOneById(id, { relations: ['customer'] });
   }
-
 
   @SwagSuccessRes(
     'Update wallet',
@@ -155,12 +142,7 @@ export class WalletController {
     'success',
     {},
   )
-  @SwagFailedRes(
-    404,
-    'Failed to delete wallet',
-    404,
-    'Wallet not found',
-  )
+  @SwagFailedRes(404, 'Failed to delete wallet', 404, 'Wallet not found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {

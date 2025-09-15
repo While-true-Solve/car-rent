@@ -24,13 +24,16 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
 import { ILike } from 'typeorm';
 import type { Response } from 'express';
-import { SwagFailedRes, SwagSuccessRes } from 'src/common/decorator/swaggerSuccesRes-decorator';
+import {
+  SwagFailedRes,
+  SwagSuccessRes,
+} from 'src/common/decorator/swaggerSuccesRes-decorator';
 import { customerData } from 'src/common/document/res-data-swagger/customer-data';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('customer')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) { }
+  constructor(private readonly customerService: CustomerService) {}
 
   @SwagSuccessRes(
     'Register customer',
@@ -38,7 +41,7 @@ export class CustomerController {
     'Customer registered successfully',
     201,
     'success',
-    customerData
+    customerData,
   )
   @SwagFailedRes(
     400,
@@ -60,12 +63,7 @@ export class CustomerController {
     'success',
     { token: 'jwt.token.here' },
   )
-  @SwagFailedRes(
-    401,
-    'Failed to login customer',
-    401,
-    'Invalid credentials',
-  )
+  @SwagFailedRes(401, 'Failed to login customer', 401, 'Invalid credentials')
   @Roles('public')
   @Post('logen')
   login(@Body() loginCustomerDto: LoginCustomerDto) {
@@ -80,19 +78,12 @@ export class CustomerController {
     'success',
     [customerData],
   )
-  @SwagFailedRes(
-    404,
-    'Failed to get customers',
-    404,
-    'No customers found',
-  )
+  @SwagFailedRes(404, 'Failed to get customers', 404, 'No customers found')
   @Get()
   @ApiBearerAuth()
   findAllWithPagination(@Query() queryDto: QueryPaginationDto) {
     const { query, page, limit } = queryDto;
-    const where = query
-      ? { full_name: ILike(`%${query}%`) }
-      : { };
+    const where = query ? { full_name: ILike(`%${query}%`) } : {};
     return this.customerService.findAllWithPagination({
       where,
       order: { created_at: 'DESC' },
@@ -100,7 +91,12 @@ export class CustomerController {
         id: true,
         is_active: true,
       },
-      relations:{ orders:true, wallets:true, comments:true, adoptedCars:true, },
+      relations: {
+        orders: true,
+        wallets: true,
+        comments: true,
+        adoptedCars: true,
+      },
       skip: page,
       take: limit,
     });
@@ -114,16 +110,18 @@ export class CustomerController {
     'success',
     [customerData],
   )
-  @SwagFailedRes(
-    404,
-    'Failed to get customers',
-    404,
-    'No customers found',
-  )
+  @SwagFailedRes(404, 'Failed to get customers', 404, 'No customers found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Get('all')
   findAll() {
-    return this.customerService.findAll({ relations: { orders: true, wallets: true, comments: true, adoptedCars: true, } });
+    return this.customerService.findAll({
+      relations: {
+        orders: true,
+        wallets: true,
+        comments: true,
+        adoptedCars: true,
+      },
+    });
   }
 
   @SwagSuccessRes(
@@ -134,16 +132,18 @@ export class CustomerController {
     'success',
     customerData,
   )
-  @SwagFailedRes(
-    404,
-    'Failed to get customer',
-    404,
-    'Customer not found',
-  )
+  @SwagFailedRes(404, 'Failed to get customer', 404, 'Customer not found')
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.customerService.findOneById(id, { relations: { orders: true, wallets: true, comments: true, adoptedCars: true, } });
+    return this.customerService.findOneById(id, {
+      relations: {
+        orders: true,
+        wallets: true,
+        comments: true,
+        adoptedCars: true,
+      },
+    });
   }
 
   @SwagSuccessRes(
@@ -177,12 +177,7 @@ export class CustomerController {
     'success',
     {},
   )
-  @SwagFailedRes(
-    404,
-    'Failed to delete customer',
-    404,
-    'Customer not found',
-  )
+  @SwagFailedRes(404, 'Failed to delete customer', 404, 'Customer not found')
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN, 'ID')
   @Delete(':id')
   remove(@Param('id') id: string) {
@@ -205,7 +200,10 @@ export class CustomerController {
   )
   @Roles('public')
   @Post('signin')
-  signIn(@Body() signInCustomerDto: SignInCustomerDto, @Res({passthrough:true}) res: Response) {
+  signIn(
+    @Body() signInCustomerDto: SignInCustomerDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     return this.customerService.signInCustomer(signInCustomerDto, res);
   }
 
@@ -227,7 +225,7 @@ export class CustomerController {
   @Post('signout')
   signOut(
     @Body() signOutCustomerDto: SignOutCustomerDto,
-    @Res({passthrough:true}) res: Response,
+    @Res({ passthrough: true }) res: Response,
   ) {
     return this.customerService.signOutCustomer(signOutCustomerDto, res);
   }

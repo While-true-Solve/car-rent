@@ -232,24 +232,36 @@ export class OrderService extends BaseService<
   async getOrdersPaginated(query: QueryPaginationDto) {
     const { page = 1, limit = 10, query: searchQuery } = query;
 
-    // Find options
-    const findOptions: any = {
-      take: limit,
-      skip: page,
-      relations: ['car', 'customer', 'penalty'],
-      order: { start_time: 'DESC' },
-    };
+    const skip = (Number(page) - 1) * Number(limit);
 
-    // Agar qidiruv so‘rovi bo‘lsa
+    const qb = this.orderRepo
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.customer', 'customer')
+      .leftJoinAndSelect('order.car', 'car')
+      .leftJoinAndSelect('car.brand', 'brand')
+      .leftJoinAndSelect('order.penalty', 'penalty')
+      .orderBy('order.start_time', 'DESC')
+      .skip(skip)
+      .take(Number(limit));
+
+    // Agar qidiruv bo‘lsa
     if (searchQuery) {
-      findOptions.where = [
-        { customer: { name: searchQuery } },
-        { car: { name: searchQuery } },
-      ];
+      qb.andWhere('customer.full_name ILIKE :q OR brand.name ILIKE :q', {
+        q: `%${searchQuery}%`,
+      });
     }
 
-    // Pagination bilan data olish
-    return RepositoryPager.findAll(this.orderRepo, findOptions);
+    const [data, total] = await qb.getManyAndCount();
+
+    return {
+      data,
+      meta: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   // Get Order By Id

@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsUUID, IsNumberString, Length, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsUUID,
+  IsNumberString,
+  Length,
+  Matches,
+} from 'class-validator';
 
 export class CreateWalletDto {
   @ApiProperty({
@@ -16,9 +22,12 @@ export class CreateWalletDto {
     description: '16-digit card number',
     example: '8600123456789012',
   })
-  @IsNumberString({}, {
-    message: "Karta raqami faqat raqamlardan iborat bo'lishi kerak",
-  })
+  @IsNumberString(
+    {},
+    {
+      message: "Karta raqami faqat raqamlardan iborat bo'lishi kerak",
+    },
+  )
   @Length(16, 16, {
     message: "Karta raqami 16 ta raqamdan iborat bo'lishi kerak",
   })

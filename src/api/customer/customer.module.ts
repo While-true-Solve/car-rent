@@ -13,7 +13,7 @@ import { NotificationModule } from 'src/infrastructure/notifiaction/notification
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Customer],),
+    TypeOrmModule.forFeature([Customer]),
     NotificationModule,
     OrderModule,
     WalletModule,

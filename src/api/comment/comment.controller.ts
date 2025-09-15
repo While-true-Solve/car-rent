@@ -17,12 +17,15 @@ import { UserRole } from 'src/common/enum/user-enum';
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
 import { ILike } from 'typeorm';
-import { SwagFailedRes, SwagSuccessRes } from 'src/common/decorator/swaggerSuccesRes-decorator';
+import {
+  SwagFailedRes,
+  SwagSuccessRes,
+} from 'src/common/decorator/swaggerSuccesRes-decorator';
 import { commentData } from 'src/common/document/res-data-swagger/comment-data';
 
 @Controller('comment')
 export class CommentController {
-  constructor(private readonly commentService: CommentService) { }
+  constructor(private readonly commentService: CommentService) {}
 
   @SwagSuccessRes(
     'create comment',
@@ -30,13 +33,13 @@ export class CommentController {
     'function created comment',
     201,
     'success',
-    commentData
+    commentData,
   )
   @SwagFailedRes(
     HttpStatus.NOT_FOUND,
     'Failed creating comment', // Kamentariya yaratilmadi
     400,
-    'Already exists or invalid data' // Allaqachon mavjud yoki yaroqsiz ma’lumotlar
+    'Already exists or invalid data', // Allaqachon mavjud yoki yaroqsiz ma’lumotlar
   )
   @Roles(UserRole.SUPER_ADMIN, 'ID')
   @ApiBearerAuth()
@@ -44,7 +47,6 @@ export class CommentController {
   create(@Body() createCommentDto: CreateCommentDto) {
     return this.commentService.createComment(createCommentDto);
   }
-
 
   @SwagSuccessRes(
     'Get comments with pagination', // Sahifalash orqali kamentlarni oling
@@ -58,7 +60,7 @@ export class CommentController {
     HttpStatus.NOT_FOUND,
     'Failed to get comment', // Fikr olinmadi
     404,
-    'No comment found' // Hech qanday fikr topilmadi
+    'No comment found', // Hech qanday fikr topilmadi
   )
   @Roles('public')
   @Get()
@@ -97,7 +99,7 @@ export class CommentController {
     'Successfully retrieved comment by ID',
     200,
     'success',
-    commentData
+    commentData,
   )
   @SwagFailedRes(
     HttpStatus.NOT_FOUND,

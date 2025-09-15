@@ -29,7 +29,7 @@ import { ILike } from 'typeorm';
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('class-car')
 export class ClassCarController {
-  constructor(private readonly classCarService: ClassCarService) { }
+  constructor(private readonly classCarService: ClassCarService) {}
 
   @SwagSuccessRes(
     'class-car creating',
@@ -56,16 +56,15 @@ export class ClassCarController {
   @Get()
   @ApiBearerAuth()
   findAllPaginationClass_car(@Query() queryDto: QueryPaginationDto) {
-    const { query, page = 1, limit = 10 } = queryDto
+    const { query, page = 1, limit = 10 } = queryDto;
     return this.classCarService.findAllWithPagination({
-      where: query ? { car: { model: ILike(`%${query}%`) }} : {},   
+      where: query ? { car: { model: ILike(`%${query}%`) } } : {},
       order: { created_at: 'DESC' },
       relations: { classEntity: true, car: true },
       skip: page,
       take: limit,
     });
   }
-
 
   @SwagSuccessRes(
     'get sigment class-car',

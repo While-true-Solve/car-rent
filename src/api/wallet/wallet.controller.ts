@@ -21,14 +21,17 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { QueryPaginationDto } from 'src/common/dto/query-pagination.dto';
 import { ILike } from 'typeorm';
-import { SwagFailedRes, SwagSuccessRes } from 'src/common/decorator/swaggerSuccesRes-decorator';
+import {
+  SwagFailedRes,
+  SwagSuccessRes,
+} from 'src/common/decorator/swaggerSuccesRes-decorator';
 import { walletData } from 'src/common/document/res-data-swagger/wallet-data';
 import type { IUserRequest } from 'src/common/interface/request-user.interface';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('wallet')
 export class WalletController {
-  constructor(private readonly walletService: WalletService) { }
+  constructor(private readonly walletService: WalletService) {}
 
   @SwagSuccessRes(
     'Create wallet',
@@ -59,12 +62,7 @@ export class WalletController {
     'success',
     [walletData],
   )
-  @SwagFailedRes(
-    404,
-    'Failed to get wallets',
-    404,
-    'No wallets found',
-  )
+  @SwagFailedRes(404, 'Failed to get wallets', 404, 'No wallets found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @ApiBearerAuth()
   @Get()
@@ -89,12 +87,7 @@ export class WalletController {
     'success',
     [walletData],
   )
-  @SwagFailedRes(
-    404,
-    'Failed to get wallets',
-    404,
-    'No wallets found',
-  )
+  @SwagFailedRes(404, 'Failed to get wallets', 404, 'No wallets found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @ApiBearerAuth()
   @Get('all')
@@ -110,12 +103,7 @@ export class WalletController {
     'success',
     walletData,
   )
-  @SwagFailedRes(
-    404,
-    'Failed to get wallet',
-    404,
-    'Wallet not found',
-  )
+  @SwagFailedRes(404, 'Failed to get wallet', 404, 'Wallet not found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, 'ID')
   @ApiBearerAuth()
   @Get(':id')
@@ -156,12 +144,7 @@ export class WalletController {
     'success',
     {},
   )
-  @SwagFailedRes(
-    404,
-    'Failed to delete wallet',
-    404,
-    'Wallet not found',
-  )
+  @SwagFailedRes(404, 'Failed to delete wallet', 404, 'Wallet not found')
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @ApiBearerAuth()
   @Delete(':id')

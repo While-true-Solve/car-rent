@@ -36,7 +36,7 @@ import { customerData } from 'src/common/document/res-data-swagger/customer-data
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('customer')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) { }
+  constructor(private readonly customerService: CustomerService) {}
 
   @SwagSuccessRes(
     'Register customer',
@@ -150,11 +150,12 @@ export class CustomerController {
     [customerData],
   )
   @SwagFailedRes(404, 'Failed to get customers', 404, 'No customers found')
+
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Get('withPagination')
   @ApiBearerAuth()
   findAllWithPagination(@Query() queryDto: QueryPaginationDto) {
-    const { query, page=1, limit=10 } = queryDto;
+    const { query, page, limit } = queryDto;
     const where = query ? { full_name: ILike(`%${query}%`) } : {};
     return this.customerService.findAllWithPagination({
       where,
@@ -165,7 +166,13 @@ export class CustomerController {
         comments: true,
         adoptedCars: true,
       },
-      skip:Math.max(0,(page-1)*limit),
+      relations: {
+        orders: true,
+        wallets: true,
+        comments: true,
+        adoptedCars: true,
+      },
+      skip: page,
       take: limit,
     });
   }
@@ -254,6 +261,29 @@ export class CustomerController {
   @ApiBearerAuth()
   remove(@Param('id') id: string) {
     return this.customerService.removeCustomer(id);
+  }
+
+  @SwagSuccessRes(
+    'Sign in customer',
+    200,
+    'Customer signed in successfully',
+    200,
+    'success',
+    { message: 'Signed in successfully' },
+  )
+  @SwagFailedRes(
+    400,
+    'Failed to sign in customer',
+    400,
+    'Invalid data or session already active',
+  )
+  @Roles('public')
+  @Post('signin')
+  signIn(
+    @Body() signInCustomerDto: SignInCustomerDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    return this.customerService.signInCustomer(signInCustomerDto, res);
   }
 
   @SwagSuccessRes(

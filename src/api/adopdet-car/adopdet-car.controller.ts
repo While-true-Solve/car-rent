@@ -29,7 +29,7 @@ import { ILike } from 'typeorm';
 @UseGuards(AuthGuard, RolesGuard)
 @Controller('adopdet-car')
 export class AdopdetCarController {
-  constructor(private readonly adopdetCarService: AdopdetCarService) { }
+  constructor(private readonly adopdetCarService: AdopdetCarService) {}
 
   // Create  =====================
   @SwagSuccessRes(
@@ -57,16 +57,15 @@ export class AdopdetCarController {
   @Get()
   @ApiBearerAuth()
   findAllPaginationAdopted_car(@Query() queryDto: QueryPaginationDto) {
-    const { query, page = 1, limit = 10 } = queryDto
+    const { query, page = 1, limit = 10 } = queryDto;
     return this.adopdetCarService.findAllWithPagination({
-      where: query ? { car: {model: ILike(`%${query}%`) }} : {},    
+      where: query ? { car: { model: ILike(`%${query}%`) } } : {},
       order: { created_at: 'DESC' },
       relations: { customer: true, car: true },
       skip: page,
       take: limit,
     });
   }
-
 
   // FindAll  =====================
   @SwagSuccessRes(
@@ -110,7 +109,7 @@ export class AdopdetCarController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.adopdetCarService.findOneById(id, {
-      relations: { car: true, customer: true }
+      relations: { car: true, customer: true },
     });
   }
 

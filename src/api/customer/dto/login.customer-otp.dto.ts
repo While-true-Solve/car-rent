@@ -6,7 +6,11 @@ export class LoginCustomerDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ type: 'string', example: '123456', description: '6 xonali OTP kod' })
+  @ApiProperty({
+    type: 'string',
+    example: '123456',
+    description: '6 xonali OTP kod',
+  })
   @IsString()
   @MinLength(6)
   @MaxLength(6)

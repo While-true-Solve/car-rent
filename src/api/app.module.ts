@@ -19,6 +19,7 @@ import { PaymentModule } from './payment/payment.module';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { MailerModule } from '@nestjs-modules/mailer';
+import { NotificationModule } from 'src/infrastructure/notifiaction/notification.module';
 
 const { url, sync } = config.DB;
 
@@ -63,6 +64,7 @@ const { url, sync } = config.DB;
     CustomerModule,
     WalletModule,
     PenaltyModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [],

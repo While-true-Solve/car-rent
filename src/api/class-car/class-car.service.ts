@@ -1,11 +1,8 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateClassCarDto } from './dto/create-class-car.dto';
 import { UpdateClassCarDto } from './dto/update-class-car.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Car, Class, ClassCars} from 'src/core';
+import { Car, Class, ClassCars } from 'src/core';
 import { BaseService } from 'src/infrastructure/base/base.servise';
 import type { ClassRepository } from 'src/core';
 import type { ClassCarRepository } from 'src/core/repository/class-car.repository';
